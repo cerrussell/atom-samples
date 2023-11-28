@@ -3,7 +3,7 @@ param(
     [array]$langs = @("java", "python", "javascript"),
     [string]$outputdir = ".",
     [string]$repodir = "src_repos",
-    [string]$repocsv = "C:\Users\user\PycharmProjects\atom-samples\sources.csv"
+    [string]$repocsv = "sources.csv"
 )
 
 function build_args
