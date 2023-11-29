@@ -26,6 +26,7 @@ function generate
 {
 
     $repositories = Import-Csv -Path $repocsv
+    $sdk_installed = @()
 
     foreach ($repo in $repositories)
     {
@@ -34,6 +35,14 @@ function generate
             git clone $repo.link $dir
             if ($repo.pre_build_cmd.Length -gt 0)
             {
+                $cmds = $repo.pre_build_cmd.Split(";")
+                foreach ($cmd in $cmds) {
+                    if ($cmd -in $sdk_installed) {
+                        continue
+                    }
+                    sdkman_installs($cmd)
+                    $sdk_installed += sdkman_installs($cmd)
+                }
                 $loc = Get-Location
                 Set-Location $dir
                 Invoke-Expression $repo.pre_build_cmd
@@ -63,6 +72,14 @@ function generate
         }
     }
 }
+
+function sdkman_installs
+{
+    param(
+        [string]$cmd
+    )
+    $new_cmd = $cmd.Replace("use", "install")
+    Invoke-Expression $new_cmd
 
 $args = build_args
 

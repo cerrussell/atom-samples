@@ -27,10 +27,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v3
-        with:
-          java-version: 20
-          distribution: temurin
+      - name: Use sdkman
+        run: |
+          curl -s "https://get.sdkman.io" | bash
+
+      - name: Install Java 20.0.2-tem
+        run: |
+          sdk install java 20.0.2-tem
+          sdk use java 20.0.2-tem
 
       - run: npm install -g @appthreat/atom
 
