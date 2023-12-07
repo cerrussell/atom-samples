@@ -138,7 +138,7 @@ def run_pre_builds(repo_data):
     cmds = set(cmds)
 
     for c in cmds:
-        sdkman_installs(c)
+        sdkman_installs(c.lstrip())
 
 
 def main():
