@@ -74,6 +74,8 @@ def build_args():
 def generate(repo_data, clone_dir, output_dir, slice_types, clone):
     run_pre_builds(repo_data)
 
+    # commands = []
+
     for repo in repo_data:
         project = repo['project']
         lang = repo['language']
@@ -82,21 +84,31 @@ def generate(repo_data, clone_dir, output_dir, slice_types, clone):
         if clone:
             clone_repo(repo['link'], clone_dir, repo_dir)
 
-        if len(repo['build_cmd']) > 0:
-            cmds = repo['build_cmd'].split(';')
+        if len(repo['pre_build_cmd']) > 0:
             os.chdir(repo_dir)
+            cmds = repo['pre_build_cmd'].split(';')
             for cmd in cmds:
                 subprocess.run(cmd, shell=True, encoding='utf-8', check=False)
+                # commands.append(cmd)
+
+        if len(repo['build_cmd']) > 0:
+            cmds = repo['build_cmd'].split(';')
+            for cmd in cmds:
+                subprocess.run(cmd, shell=True, encoding='utf-8', check=False)
+                # commands.append(cmd)
 
         for stype in slice_types:
             fname = f'{output_dir}/{lang}/{project}-{stype}.json'
-            print(
-                f'Generating {stype} slice for {project} at {output_dir}/'
-                f'{lang}/{fname}',
-            )
+            # print(
+            #     f'Generating {stype} slice for {project} at {fname}',
+            # )
             cmd = f'atom {stype} -l {lang} -o {project}.atom -s {fname} .'
+            # commands.append(cmd)
             subprocess.run(cmd, shell=True, encoding='utf-8', check=False)
         os.chdir(loc)
+
+    # with open('atom_commands.sh', 'w', encoding='utf-8') as f:
+    #     f.write('\n'.join(commands))
 
 
 def sdkman_installs(cmd):
@@ -149,7 +161,8 @@ def run_pre_builds(repo_data):
         env=os.environ.copy(),
         encoding='utf-8', check=False, )
 
-def check_dirs(clone_dir, output_dir, clone):
+
+def check_dirs(clone, clone_dir, output_dir):
     if clone and not os.path.exists(clone_dir):
         os.makedirs(clone_dir)
     if not os.path.exists(output_dir):
@@ -161,7 +174,7 @@ def main():
     langs = set(args.langs)
     if args.elangs:
         langs = langs - set(args.elangs)
-    check_dirs(args.clone_dir, args.output_dir, args.clone)
+    check_dirs(args.clone, args.clone_dir, args.output_dir)
     repo_data = read_csv(args.repo_csv, langs)
     generate(repo_data, args.clone_dir, args.output_dir, args.slice_types, args.clone)
 
