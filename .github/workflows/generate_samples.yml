@@ -31,8 +31,8 @@ jobs:
 
       - name: Update slices
         run: |
-          curl -s "https://get.sdkman.io"
-          source "/home/runner/.sdkman/bin/sdkman-init.sh"
+          # curl -s "https://get.sdkman.io"
+          # source "/home/runner/.sdkman/bin/sdkman-init.sh"
           python ./generate.py ${{ inputs.args }}
 
       - name: Upload slices as artifact
