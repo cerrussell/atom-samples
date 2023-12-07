@@ -138,6 +138,7 @@ def run_pre_builds(repo_data):
     commands = [c.lstrip().replace('use', 'install') for c in cmds]
     with open('sdkman_installs.sh', 'w', encoding='utf-8') as f:
         f.write('#!/usr/bin/env bash\n')
+        f.write('source "/${SDKMAN_DIR}/bin/sdkman-init.sh"\n')
         f.write('\n'.join(commands))
 
     cp = subprocess.run(
