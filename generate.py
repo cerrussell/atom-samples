@@ -110,11 +110,12 @@ def generate(repo_data, clone_dir, output_dir, slice_types, clone):
             # subprocess.run(cmd, shell=True, encoding='utf-8', check=False)
             commands += f"\n{subprocess.list2cmdline(cmd)}"
 
+        commands += '\n\n'
+
     # with open('atom_commands.sh', 'w', encoding='utf-8') as f:
     #     f.write(commands)
 
-        for i in commands.split('\n'):
-            print(i)
+    print(commands)
 
 
 def sdkman_installs(cmd):
