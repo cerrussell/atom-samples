@@ -102,7 +102,7 @@ def generate(repo_data, clone_dir, output_dir, slice_types, clone):
 
 
 def sdkman_installs(cmd):
-    new_cmd = cmd.replace('use', 'install')
+    new_cmd = 'bash ' + cmd.replace('use', 'install')
     cp = subprocess.run(new_cmd, stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT, env=os.environ.copy(), encoding='utf-8',
         check=False, )
