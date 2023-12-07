@@ -163,7 +163,7 @@ def main():
         langs = langs - set(args.elangs)
     check_dirs(args.clone_dir, args.output_dir, args.clone)
     repo_data = read_csv(args.repo_csv, langs)
-    generate(repo_data, args.repo_dir, args.output_dir, args.slice_types, args.clone)
+    generate(repo_data, args.clone_dir, args.output_dir, args.slice_types, args.clone)
 
 
 if __name__ == '__main__':
