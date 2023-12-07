@@ -7,6 +7,7 @@ import argparse
 
 def build_args():
     parser = argparse.ArgumentParser()
+    parser.set_defaults(langs=['java', 'python', 'javascript'], elangs=[])
     parser.add_argument(
         '--repo-csv',
         type=str,
@@ -29,10 +30,10 @@ def build_args():
         help='Path to output',
         dest='output_dir'
     )
-    subparsers = parser.add_subparsers(required=True)
+    subparsers = parser.add_subparsers()
     lang_parser = subparsers.add_parser(
         'filter',
-        help='Filter languages to include')
+        help='Filter languages to include or exclude')
     lang_parser_group = lang_parser.add_mutually_exclusive_group()
     lang_parser_group.set_defaults(langs=['java', 'python', 'javascript'])
     lang_parser_group.add_argument(
