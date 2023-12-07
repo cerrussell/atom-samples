@@ -59,7 +59,7 @@ def build_args():
         default=['usages', 'reachables'],
         help='Slice types to generate, default is both usages and reachables',
         dest='slice_types',
-        nargs='*'
+        nargs='?'
     )
     parser.add_argument(
         '--skip-clone',
