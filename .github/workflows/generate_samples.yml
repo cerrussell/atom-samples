@@ -27,16 +27,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Use sdkman
-        shell: bash
-        run: |
-          curl -s "https://get.sdkman.io"
-
       - run: npm install -g @appthreat/atom
 
       - name: Update slices
         run: |
-          source /home/runner/.sdkman/bin/sdkman-init.sh
+          curl -s "https://get.sdkman.io"
+          source "/home/runner/.sdkman/bin/sdkman-init.sh"
           python ./generate.py ${{ inputs.args }}
 
       - name: Upload slices as artifact
