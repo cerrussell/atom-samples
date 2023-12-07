@@ -28,20 +28,16 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Use sdkman
+        shell: bash
         run: |
-          curl -s "https://get.sdkman.io" | bash
-
-      - name: Install Java 20.0.2-tem
-        run: |
-          sdk install java 20.0.2-tem
-          sdk use java 20.0.2-tem
+          curl -s "https://get.sdkman.io"
 
       - run: npm install -g @appthreat/atom
 
       - name: Update slices
-        shell: pwsh
         run: |
-          ./generate.ps1 ${{ inputs.args }}
+          source /home/runner/.sdkman/bin/sdkman-init.sh
+          python ./generate.py ${{ inputs.args }}
 
       - name: Upload slices as artifact
         uses: actions/upload-artifact@v3
