@@ -74,7 +74,7 @@ def build_args():
 def generate(repo_data, clone_dir, output_dir, slice_types, clone):
     run_pre_builds(repo_data)
 
-    # commands = []
+    commands = ''
 
     for repo in repo_data:
         project = repo['project']
@@ -85,30 +85,36 @@ def generate(repo_data, clone_dir, output_dir, slice_types, clone):
             clone_repo(repo['link'], clone_dir, repo_dir)
 
         if len(repo['pre_build_cmd']) > 0:
-            os.chdir(repo_dir)
+            # os.chdir(repo_dir)
             cmds = repo['pre_build_cmd'].split(';')
+            cmds = [cmd.lstrip().rstrip() for cmd in cmds]
             for cmd in cmds:
-                subprocess.run(cmd, shell=True, encoding='utf-8', check=False)
-                # commands.append(cmd)
+                new_cmd = list(cmd.split(' '))
+                # subprocess.run(new_cmd, shell=True, encoding='utf-8', check=False)
+                commands += f"\n{subprocess.list2cmdline(new_cmd)}"
 
         if len(repo['build_cmd']) > 0:
             cmds = repo['build_cmd'].split(';')
+            cmds = [cmd.lstrip().rstrip() for cmd in cmds]
             for cmd in cmds:
-                subprocess.run(cmd, shell=True, encoding='utf-8', check=False)
-                # commands.append(cmd)
+                new_cmd = list(cmd.split(' '))
+                # subprocess.run(new_cmd, shell=True, encoding='utf-8', check=False)
+                commands += f"\n{subprocess.list2cmdline(new_cmd)}"
+
+        # os.chdir(loc)
 
         for stype in slice_types:
-            fname = f'{output_dir}/{lang}/{project}-{stype}.json'
-            # print(
-            #     f'Generating {stype} slice for {project} at {fname}',
-            # )
-            cmd = f'atom {stype} -l {lang} -o {project}.atom -s {fname} .'
-            # commands.append(cmd)
-            subprocess.run(cmd, shell=True, encoding='utf-8', check=False)
-        os.chdir(loc)
+            slice_file = os.path.join(output_dir, lang, f"{project}-{stype}.json")
+            atom_file = os.path.join(repo_dir, f"{project}.atom")
+            cmd = ['atom', stype, '-l', lang, '-o', atom_file, '-s', slice_file, repo_dir]
+            # subprocess.run(cmd, shell=True, encoding='utf-8', check=False)
+            commands += f"\n{subprocess.list2cmdline(cmd)}"
 
     # with open('atom_commands.sh', 'w', encoding='utf-8') as f:
-    #     f.write('\n'.join(commands))
+    #     f.write(commands)
+
+        for i in commands.split('\n'):
+            print(i)
 
 
 def sdkman_installs(cmd):
@@ -145,21 +151,24 @@ def run_pre_builds(repo_data):
         for row in repo_data
         if row['pre_build_cmd']
     ]
+    cmds = [cmd.lstrip().rstrip() for cmd in cmds]
     cmds = set(cmds)
 
-    commands = [c.lstrip().replace('use', 'install') for c in cmds]
-    with open('sdkman_installs.sh', 'w', encoding='utf-8') as f:
-        f.write('#!/usr/bin/env bash\n')
-        f.write('source "/${SDKMAN_DIR}/bin/sdkman-init.sh"\n')
-        f.write('\n'.join(commands))
+    commands = [c.replace('use', 'install') for c in cmds]
+    # with open('sdkman_installs.sh', 'w', encoding='utf-8') as f:
+    #     f.write('#!/usr/bin/env bash\n')
+    #     f.write('source "/${SDKMAN_DIR}/bin/sdkman-init.sh"\n')
+    #     f.write('\n'.join(commands))
 
-    cp = subprocess.run(
-        'sdkman_installs.sh',
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        env=os.environ.copy(),
-        encoding='utf-8', check=False, )
+    print('\n'.join(commands))
+
+    # cp = subprocess.run(
+    #     'sdkman_installs.sh',
+    #     shell=True,
+    #     stdout=subprocess.PIPE,
+    #     stderr=subprocess.STDOUT,
+    #     env=os.environ.copy(),
+    #     encoding='utf-8', check=False, )
 
 
 def check_dirs(clone, clone_dir, output_dir):
@@ -174,7 +183,7 @@ def main():
     langs = set(args.langs)
     if args.elangs:
         langs = langs - set(args.elangs)
-    check_dirs(args.clone, args.clone_dir, args.output_dir)
+    # check_dirs(args.clone, args.clone_dir, args.output_dir)
     repo_data = read_csv(args.repo_csv, langs)
     generate(repo_data, args.clone_dir, args.output_dir, args.slice_types, args.clone)
 
