@@ -16,11 +16,11 @@ def build_args():
         dest='repo_csv'
     )
     parser.add_argument(
-        '--repo-dir',
+        '--clone-dir',
         type=str,
         default='/home/runner/work/src_repos',
         help='Path to src_repos',
-        dest='repo_dir'
+        dest='clone_dir'
     )
     parser.add_argument(
         '-o',
@@ -149,13 +149,19 @@ def run_pre_builds(repo_data):
         env=os.environ.copy(),
         encoding='utf-8', check=False, )
 
+def check_dirs(clone_dir, output_dir, clone):
+    if clone and not os.path.exists(clone_dir):
+        os.makedirs(clone_dir)
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
 
 def main():
     args = build_args()
     langs = set(args.langs)
     if args.elangs:
         langs = langs - set(args.elangs)
-
+    check_dirs(args.clone_dir, args.output_dir, args.clone)
     repo_data = read_csv(args.repo_csv, langs)
     generate(repo_data, args.repo_dir, args.output_dir, args.slice_types, args.clone)
 

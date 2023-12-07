@@ -16,7 +16,7 @@ on:
       args:
         description: Optional arguments for generation script
         required: false
-        default: '--repo-dir /home/runner/work/src_repos'
+        default: '--clone-dir /home/runner/work/src_repos'
         type: string
   
 
@@ -31,8 +31,6 @@ jobs:
 
       - name: Update slices
         run: |
-          # curl -s "https://get.sdkman.io"
-          # source "/home/runner/.sdkman/bin/sdkman-init.sh"
           python ./generate.py ${{ inputs.args }}
 
       - name: Upload slices as artifact
