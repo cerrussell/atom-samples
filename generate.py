@@ -85,30 +85,30 @@ def generate(repo_data, clone_dir, output_dir, slice_types, clone):
             clone_repo(repo['link'], clone_dir, repo_dir)
 
         if len(repo['pre_build_cmd']) > 0:
-            # os.chdir(repo_dir)
+            os.chdir(repo_dir)
             cmds = repo['pre_build_cmd'].split(';')
             cmds = [cmd.lstrip().rstrip() for cmd in cmds]
             for cmd in cmds:
                 new_cmd = list(cmd.split(' '))
-                # subprocess.run(new_cmd, shell=True, encoding='utf-8', check=False)
                 commands += f"\n{subprocess.list2cmdline(new_cmd)}"
+                subprocess.run(new_cmd, shell=True, encoding='utf-8', check=False)
 
         if len(repo['build_cmd']) > 0:
             cmds = repo['build_cmd'].split(';')
             cmds = [cmd.lstrip().rstrip() for cmd in cmds]
             for cmd in cmds:
                 new_cmd = list(cmd.split(' '))
-                # subprocess.run(new_cmd, shell=True, encoding='utf-8', check=False)
                 commands += f"\n{subprocess.list2cmdline(new_cmd)}"
+                subprocess.run(new_cmd, shell=True, encoding='utf-8', check=False)
 
-        # os.chdir(loc)
+        os.chdir(loc)
 
         for stype in slice_types:
             slice_file = os.path.join(output_dir, lang, f"{project}-{stype}.json")
             atom_file = os.path.join(repo_dir, f"{project}.atom")
             cmd = ['atom', stype, '-l', lang, '-o', atom_file, '-s', slice_file, repo_dir]
-            # subprocess.run(cmd, shell=True, encoding='utf-8', check=False)
             commands += f"\n{subprocess.list2cmdline(cmd)}"
+            subprocess.run(cmd, shell=True, encoding='utf-8', check=False)
 
         commands += '\n\n'
 
@@ -163,13 +163,13 @@ def run_pre_builds(repo_data):
 
     print('\n'.join(commands))
 
-    # cp = subprocess.run(
-    #     'sdkman_installs.sh',
-    #     shell=True,
-    #     stdout=subprocess.PIPE,
-    #     stderr=subprocess.STDOUT,
-    #     env=os.environ.copy(),
-    #     encoding='utf-8', check=False, )
+    cp = subprocess.run(
+        'sdkman_installs.sh',
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        env=os.environ.copy(),
+        encoding='utf-8', check=False, )
 
 
 def check_dirs(clone, clone_dir, output_dir):
@@ -184,7 +184,7 @@ def main():
     langs = set(args.langs)
     if args.elangs:
         langs = langs - set(args.elangs)
-    # check_dirs(args.clone, args.clone_dir, args.output_dir)
+    check_dirs(args.clone, args.clone_dir, args.output_dir)
     repo_data = read_csv(args.repo_csv, langs)
     generate(repo_data, args.clone_dir, args.output_dir, args.slice_types, args.clone)
 
