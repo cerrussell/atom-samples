@@ -72,8 +72,6 @@ def build_args():
 
 
 def generate(repo_data, clone_dir, output_dir, slice_types, clone):
-    sdk_installed = []
-
     run_pre_builds(repo_data)
 
     for repo in repo_data:
@@ -88,7 +86,7 @@ def generate(repo_data, clone_dir, output_dir, slice_types, clone):
             cmds = repo['build_cmd'].split(';')
             os.chdir(repo_dir)
             for cmd in cmds:
-                subprocess.run(cmd)
+                subprocess.run(cmd, shell=True, encoding='utf-8', check=False)
 
         for stype in slice_types:
             fname = f'{output_dir}/{lang}/{project}-{stype}.json'
@@ -97,13 +95,13 @@ def generate(repo_data, clone_dir, output_dir, slice_types, clone):
                 f'{lang}/{fname}',
             )
             cmd = f'atom {stype} -l {lang} -o {project}.atom -s {fname} .'
-            subprocess.run(cmd)
+            subprocess.run(cmd, shell=True, encoding='utf-8', check=False)
         os.chdir(loc)
 
 
 def sdkman_installs(cmd):
     new_cmd = 'bash ' + cmd.replace('use', 'install')
-    cp = subprocess.run(new_cmd, stdout=subprocess.PIPE,
+    cp = subprocess.run(new_cmd, stdout=subprocess.PIPE, shell=True,
         stderr=subprocess.STDOUT, env=os.environ.copy(), encoding='utf-8',
         check=False, )
 
@@ -125,7 +123,7 @@ def clone_repo(url, clone_dir, repo_dir):
         logging.warning(f'{repo_dir} already exists, skipping clone.')
         return
     clone_cmd = f'git clone {url} {repo_dir}'
-    subprocess.run(clone_cmd)
+    subprocess.run(clone_cmd, shell=True, encoding='utf-8', check=False)
     
 
 def run_pre_builds(repo_data):
@@ -137,8 +135,18 @@ def run_pre_builds(repo_data):
     ]
     cmds = set(cmds)
 
-    for c in cmds:
-        sdkman_installs(c.lstrip())
+    commands = [c.lstrip().replace('use', 'install') for c in cmds]
+    with open('sdkman_installs.sh', 'w', encoding='utf-8') as f:
+        f.write('#!/usr/bin/env bash\n')
+        f.write('\n'.join(commands))
+
+    cp = subprocess.run(
+        'sdkman_installs.sh',
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        env=os.environ.copy(),
+        encoding='utf-8', check=False, )
 
 
 def main():
