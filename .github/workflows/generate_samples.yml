@@ -13,11 +13,17 @@ on:
         required: false
         default: "Slice update"
         type: string
-      args:
-        description: Optional arguments for generation script
+      filter-slice-type:
+        description: Generate this slice type
         required: false
-        default: '--clone-dir /home/runner/work/src_repos'
+        default: 'usages reachables'
         type: string
+      filter:
+        description: Generate only for these languages (separated by spaces)
+        required: false
+        default: 'java javascript python'
+        type: string
+
   
 
 jobs:
@@ -31,7 +37,7 @@ jobs:
 
       - name: Update slices
         run: |
-          python ./generate.py ${{ inputs.args }}
+          python ./generate.py -s ${{ inputs.filter-slice-type }} filter -i ${{ inputs.filter }}
 
       - name: Upload slices as artifact
         uses: actions/upload-artifact@v3
