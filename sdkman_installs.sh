@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source /${SDKMAN_DIR}/bin/sdkman-init.sh
+source ${SDKMAN_DIR}/bin/sdkman-init.sh
 
 sdk install maven 3.11.0
 sdk install java 8.0.392-tem

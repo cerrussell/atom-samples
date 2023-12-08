@@ -113,7 +113,7 @@ def generate(repo_data, clone_dir, output_dir, slice_types, clone, debug_cmds, s
         commands += f"\n{subprocess.list2cmdline(['cd', loc])}"
 
         if not skip_build and lang == 'java':
-            commands += f'\n{subprocess.list2cmdline(["sdk", "use", "java", "20.0.2-tem"])}'
+            commands += f'\n{subprocess.list2cmdline(["sdk", "env", "clear"])}'
 
         for stype in slice_types:
             slice_file = os.path.join(output_dir, lang, f"{project}-{stype}.json")
@@ -147,6 +147,11 @@ def clone_repo(url, clone_dir, repo_dir):
     
 
 def run_pre_builds(repo_data, output_dir, debug_cmds):
+    install_sdkman = ["curl", "-s", "'https://get.sdkman.io'", "|", "bash"]
+    cp = subprocess.run(install_sdkman, shell=True,
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        env=os.environ.copy(), encoding='utf-8', check=False, )
+    print(cp.stdout)
     cmds = []
     [
         cmds.extend(row['pre_build_cmd'].split(';'))
@@ -164,8 +169,8 @@ def run_pre_builds(repo_data, output_dir, debug_cmds):
 
 def use_script(file_path, commands, debug_cmds):
     with open(file_path, 'w', encoding='utf-8') as f:
-        f.write('#!/usr/bin/env bash\nsource '
-                '/${SDKMAN_DIR}/bin/sdkman-init.sh\n\n')
+        sdkman_path = os.path.join('home', 'runner', '.sdkman', 'bin', 'sdkman-init.sh')
+        f.write(f'#!/usr/bin/bash\nsource "{sdkman_path}"\n\n')
         f.write(commands)
     if debug_cmds:
         print(commands)
@@ -191,7 +196,7 @@ def main():
     if args.elangs:
         langs = langs - set(args.elangs)
     # if not args.debug_cmds or not os.getenv('CI'):
-    # check_dirs(args.clone, args.clone_dir, args.output_dir)
+    check_dirs(args.clone, args.clone_dir, args.output_dir)
     repo_data = read_csv(args.repo_csv, langs)
     generate(repo_data, args.clone_dir, args.output_dir, args.slice_types, args.clone, args.debug_cmds, args.skip_build)
 
