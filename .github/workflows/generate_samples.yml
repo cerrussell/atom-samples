@@ -73,8 +73,9 @@ jobs:
 
       - name: Generate slices
         if: ${{ ! inputs.debug-cmds }}
+        env:
+          SDKMAN_DIR: /home/runner/.sdkman
         run: |
-           echo $SDKMAN_DIR
            python generate.py --skip-clone --debug-cmds -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
            bash /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
            bash /home/runner/work/atom-samples/atom-samples/atom_commands.sh
