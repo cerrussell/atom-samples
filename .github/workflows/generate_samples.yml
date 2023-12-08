@@ -16,15 +16,12 @@ on:
       args:
         description: Generate only this slice type
         required: false
-        default: ''
         type: string
       filter:
         description: Generate only for these languages (separated by spaces)
         required: false
         default: 'java javascript python'
         type: string
-
-  
 
 jobs:
   generate:
