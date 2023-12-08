@@ -7,7 +7,7 @@ import argparse
 
 def build_args():
     parser = argparse.ArgumentParser()
-    parser.set_defaults()
+    parser.set_defaults(slice_types=['usages', 'reachables'])
     parser.add_argument(
         '--repo-csv',
         type=str,
@@ -64,10 +64,16 @@ def build_args():
         default=True,
         help='Skip cloning the repositories (must be used with the --repo-dir argument)'
     )
+    parser.add_argument(
+        '--debug-cmds',
+        action='store_true',
+        dest='debug_cmds',
+        default=False,
+    )
     return parser.parse_args()
 
 
-def generate(repo_data, clone_dir, output_dir, slice_types, clone):
+def generate(repo_data, clone_dir, output_dir, slice_types, clone, debug_cmds):
     run_pre_builds(repo_data)
 
     commands = ''
@@ -77,48 +83,58 @@ def generate(repo_data, clone_dir, output_dir, slice_types, clone):
         lang = repo['language']
         loc = os.getcwd()
         repo_dir = os.path.join(clone_dir, lang, project)
-        if clone:
+        if clone and not debug_cmds:
             clone_repo(repo['link'], clone_dir, repo_dir)
 
         if len(repo['pre_build_cmd']) > 0:
-            os.chdir(repo_dir)
+            if not debug_cmds:
+                os.chdir(repo_dir)
             cmds = repo['pre_build_cmd'].split(';')
             cmds = [cmd.lstrip().rstrip() for cmd in cmds]
             for cmd in cmds:
                 new_cmd = list(cmd.split(' '))
                 commands += f"\n{subprocess.list2cmdline(new_cmd)}"
-                subprocess.run(new_cmd, shell=True, encoding='utf-8', check=False)
+                if not debug_cmds:
+                    subprocess.run(new_cmd, shell=True, encoding='utf-8', check=False)
 
         if len(repo['build_cmd']) > 0:
             cmds = repo['build_cmd'].split(';')
             cmds = [cmd.lstrip().rstrip() for cmd in cmds]
             for cmd in cmds:
                 new_cmd = list(cmd.split(' '))
-                commands += f"\n{subprocess.list2cmdline(new_cmd)}"
-                subprocess.run(new_cmd, shell=True, encoding='utf-8', check=False)
+                if debug_cmds:
+                    commands += f"\n{subprocess.list2cmdline(new_cmd)}"
+                else:
+                    subprocess.run(new_cmd, shell=True, encoding='utf-8', check=False)
 
-        os.chdir(loc)
+        if not debug_cmds:
+            os.chdir(loc)
 
         for stype in slice_types:
             slice_file = os.path.join(output_dir, lang, f"{project}-{stype}.json")
             atom_file = os.path.join(repo_dir, f"{project}.atom")
             cmd = ['atom', stype, '-l', lang, '-o', atom_file, '-s', slice_file, repo_dir]
-            commands += f"\n{subprocess.list2cmdline(cmd)}"
-            subprocess.run(cmd, shell=True, encoding='utf-8', check=False)
+            if debug_cmds:
+                commands += f"\n{subprocess.list2cmdline(cmd)}"
+            else:
+                subprocess.run(cmd, shell=True, encoding='utf-8', check=False)
 
         commands += '\n\n'
 
-    # with open('atom_commands.sh', 'w', encoding='utf-8') as f:
-    #     f.write(commands)
+    if debug_cmds:
+        print(commands)
+    else:
+        with open('atom_commands.sh', 'w', encoding='utf-8') as f:
+            f.write('#!/usr/bin/env bash\n')
+            f.write('source "/${SDKMAN_DIR}/bin/sdkman-init.sh"\n')
+            f.write(commands)
 
-    print(commands)
+        cp = subprocess.run('atom_commands.sh', shell=True,
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            env=os.environ.copy(), encoding='utf-8', check=False, )
 
-
-def sdkman_installs(cmd):
-    new_cmd = 'bash ' + cmd.replace('use', 'install')
-    cp = subprocess.run(new_cmd, stdout=subprocess.PIPE, shell=True,
-        stderr=subprocess.STDOUT, env=os.environ.copy(), encoding='utf-8',
-        check=False, )
+        if cp.returncode != 0:
+            print(cp.stdout)
 
 
 def read_csv(csv_file, langs):
@@ -141,7 +157,7 @@ def clone_repo(url, clone_dir, repo_dir):
     subprocess.run(clone_cmd, shell=True, encoding='utf-8', check=False)
     
 
-def run_pre_builds(repo_data):
+def run_pre_builds(repo_data, debug_cmds=False):
     cmds = []
     [
         cmds.extend(row['pre_build_cmd'].split(';'))
@@ -152,20 +168,24 @@ def run_pre_builds(repo_data):
     cmds = set(cmds)
 
     commands = [c.replace('use', 'install') for c in cmds]
-    # with open('sdkman_installs.sh', 'w', encoding='utf-8') as f:
-    #     f.write('#!/usr/bin/env bash\n')
-    #     f.write('source "/${SDKMAN_DIR}/bin/sdkman-init.sh"\n')
-    #     f.write('\n'.join(commands))
+    if debug_cmds:
+        print('\n'.join(commands))
+    else:
+        with open('sdkman_installs.sh', 'w', encoding='utf-8') as f:
+            f.write('#!/usr/bin/env bash\n')
+            f.write('source "/${SDKMAN_DIR}/bin/sdkman-init.sh"\n')
+            f.write('\n'.join(commands))
 
-    print('\n'.join(commands))
+        cp = subprocess.run(
+            'sdkman_installs.sh',
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            env=os.environ.copy(),
+            encoding='utf-8', check=False, )
 
-    cp = subprocess.run(
-        'sdkman_installs.sh',
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        env=os.environ.copy(),
-        encoding='utf-8', check=False, )
+        if cp.returncode != 0:
+            print(cp.stdout)
 
 
 def check_dirs(clone, clone_dir, output_dir):
@@ -182,7 +202,7 @@ def main():
         langs = langs - set(args.elangs)
     check_dirs(args.clone, args.clone_dir, args.output_dir)
     repo_data = read_csv(args.repo_csv, langs)
-    generate(repo_data, args.clone_dir, args.output_dir, args.slice_types, args.clone)
+    generate(repo_data, args.clone_dir, args.output_dir, args.slice_types, args.clone, args.debug_cmds)
 
 
 if __name__ == '__main__':
