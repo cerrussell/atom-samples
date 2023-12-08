@@ -65,7 +65,7 @@ jobs:
 #          python ./generate.py --skip-clone -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
 
       - name: Debug run only
-        if: steps.debug-cmds
+#        if: steps.debug-cmds
         run: |
           python ./generate.py --skip-clone --debug-cmds -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
           ./home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
