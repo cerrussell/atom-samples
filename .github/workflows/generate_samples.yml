@@ -48,8 +48,8 @@ jobs:
       -  name: test
          run: | 
           curl -s "https://get.sdkman.io" | bash
-          source ${SDKMAN_DIR}/bin/sdkman-init.sh
-          sdk --help
+          source "/home/runner/.sdkman/bin/sdkman-init.sh"
+          sdk help
 
 #
 #      - name: Restore sample repo cache
