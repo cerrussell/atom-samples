@@ -82,7 +82,7 @@ def generate(repo_data, clone_dir, output_dir, slice_types, clone, debug_cmds):
         lang = repo['language']
         loc = os.getcwd()
         repo_dir = os.path.join(clone_dir, lang, project)
-        if clone and not debug_cmds:
+        if clone:
             clone_repo(repo['link'], clone_dir, repo_dir)
 
         commands += f'\ncd {repo_dir}'
@@ -180,8 +180,8 @@ def main():
     langs = set(args.langs)
     if args.elangs:
         langs = langs - set(args.elangs)
-    if not args.debug_cmds:
-        check_dirs(args.clone, args.clone_dir, args.output_dir)
+    # if not args.debug_cmds or not os.getenv('CI'):
+    #     check_dirs(args.clone, args.clone_dir, args.output_dir)
     repo_data = read_csv(args.repo_csv, langs)
     generate(repo_data, args.clone_dir, args.output_dir, args.slice_types, args.clone, args.debug_cmds)
 

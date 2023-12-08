@@ -33,6 +33,10 @@ on:
         type: boolean
         default: false
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
   generate:
     runs-on: ubuntu-latest
@@ -43,7 +47,7 @@ jobs:
       - run: npm install -g @appthreat/atom
 
       - name: Restore sample repo cache
-        if: inputs.reset-cache
+        if: $ {{ !inputs.reset-cache }}
         uses: actions/cache/restore@v3
         id: cache
         with:
@@ -51,11 +55,11 @@ jobs:
           key: ${{ runner.os }}-atom-samples
 
       - name: Update slices without existing cached sample repos
-        if: ${{ ! steps.cache.outputs.cache-hit }} && ${{ ! inputs.debug-cmds }}
+        if: (inputs.reset-cache || ${{ ! steps.cache.outputs.cache-hit }}) && ${{ ! inputs.debug-cmds }}
         run: |
           python ./generate.py -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
 
-      - name: Update slices without existing cached sample repos
+      - name: Update slices wit existing cached sample repos
         if: steps.cache.outputs.cache-hit && ${{ ! inputs.debug-cmds }}
         run: |
           python ./generate.py --skip-clone -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
@@ -64,6 +68,8 @@ jobs:
         if: steps.debug-cmds
         run: |
           python ./generate.py --skip-clone --debug-cmds -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
+          ./sdkman_installs.sh
+          ./atom_commands.sh
 
       - name: Upload slices as artifact
         uses: actions/upload-artifact@v3
