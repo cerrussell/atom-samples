@@ -42,11 +42,19 @@ jobs:
           name: slices
           path: /home/runner/work/atom-samples/atom-samples/**/*.json
 
+      - name: Upload shell scripts generated as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: scripts
+          path: /home/runner/work/atom-samples/atom-samples/*.sh
+
       - name: Commit changes
         if: inputs.commit-updates
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          rm atom_commands.sh
+          rm sdkman_installs.sh
           git config user.name "Caroline Russell"
           git config user.email "caroline@appthreat.dev"
           git add .
