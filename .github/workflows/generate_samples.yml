@@ -102,10 +102,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-#          rm /home/runner/work/atom-samples/atom-samples/atom_commands.sh
-#          rm /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
           git config user.name "Caroline Russell"
           git config user.email "caroline@appthreat.dev"
           git add .
           git commit -m "${{ inputs.commit-msg }}"
           git push
+#          rm /home/runner/work/atom-samples/atom-samples/atom_commands.sh
+#          rm /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
