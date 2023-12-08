@@ -46,11 +46,12 @@ jobs:
 
       - run: npm install -g @appthreat/atom
       -  name: test
-         run: | 
-          curl -s "https://get.sdkman.io" | bash
-          source "/home/runner/.sdkman/bin/sdkman-init.sh"
-          sdk install java 20.0.2-tem
-          sdk default java 20.0.2-tem
+         run: |
+           curl -s "https://get.sdkman.io" | bash
+           source "/home/runner/.sdkman/bin/sdkman-init.sh"
+           echo sdkman_auto_answer=true > ~/.sdkman/etc/config
+           sdk install java 20.0.2-tem
+           sdk default java 20.0.2-tem
 
       - name: Restore sample repo cache
         if: ${{ ! inputs.reset-cache }}
@@ -60,22 +61,22 @@ jobs:
           path: /home/runner/work/src_repos
           key: ${{ runner.os }}-atom-samples
 
-#      - name: Update slices without existing cached sample repos
-#        if: (inputs.reset-cache || ${{ ! steps.cache.outputs.cache-hit }}) && ${{ ! inputs.debug-cmds }}
-#        run: |
-#          python ./generate.py -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
-#
-#      - name: Update slices with existing cached sample repos
-#        if: steps.cache.outputs.cache-hit && ${{ ! inputs.debug-cmds }}
-#        run: |
-#          python ./generate.py --skip-clone -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
+      #      - name: Update slices without existing cached sample repos
+      #        if: (inputs.reset-cache || ${{ ! steps.cache.outputs.cache-hit }}) && ${{ ! inputs.debug-cmds }}
+      #        run: |
+      #          python ./generate.py -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
+      #
+      #      - name: Update slices with existing cached sample repos
+      #        if: steps.cache.outputs.cache-hit && ${{ ! inputs.debug-cmds }}
+      #        run: |
+      #          python ./generate.py --skip-clone -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
 
       - name: Debug run only
-#        if: steps.debug-cmds
+        #        if: steps.debug-cmds
         run: |
           python generate.py --skip-clone --debug-cmds -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
-          /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
-          /home/runner/work/atom-samples/atom-samples/atom_commands.sh
+          bash /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
+          bash /home/runner/work/atom-samples/atom-samples/atom_commands.sh
 
       - name: Upload slices as artifact
         uses: actions/upload-artifact@v3
