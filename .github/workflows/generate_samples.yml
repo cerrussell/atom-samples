@@ -68,8 +68,8 @@ jobs:
 #        if: steps.debug-cmds
         run: |
           python ./generate.py --skip-clone --debug-cmds -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
-          ./home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
-          ./home/runner/work/atom-samples/atom-samples/atom_commands.sh
+          /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
+          /home/runner/work/atom-samples/atom-samples/atom_commands.sh
 
       - name: Upload slices as artifact
         uses: actions/upload-artifact@v3

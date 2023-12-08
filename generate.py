@@ -181,7 +181,7 @@ def main():
     if args.elangs:
         langs = langs - set(args.elangs)
     # if not args.debug_cmds or not os.getenv('CI'):
-    #     check_dirs(args.clone, args.clone_dir, args.output_dir)
+    check_dirs(args.clone, args.clone_dir, args.output_dir)
     repo_data = read_csv(args.repo_csv, langs)
     generate(repo_data, args.clone_dir, args.output_dir, args.slice_types, args.clone, args.debug_cmds)
 
