@@ -22,6 +22,11 @@ on:
         required: false
         default: 'java javascript python'
         type: string
+      reset-cache:
+        description: Don't use the cached versions of the sample repos
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   generate:
@@ -32,9 +37,23 @@ jobs:
 
       - run: npm install -g @appthreat/atom
 
-      - name: Update slices
+      - name: Restore sample repo cache
+        if: not inputs.reset-cache
+        uses: actions/cache/restore@v3
+        id: cache
+        with:
+          path: /home/runner/work/src_repos
+          key: ${{ runner.os }}-atom-samples
+
+      - name: Update slices without existing cached sample repos
+        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           python ./generate.py -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
+
+      - name: Update slices without existing cached sample repos
+        if: steps.cache.outputs.cache-hit == 'true'
+        run: |
+          python ./generate.py --skip-clone -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
 
       - name: Upload slices as artifact
         uses: actions/upload-artifact@v3
@@ -47,6 +66,13 @@ jobs:
         with:
           name: scripts
           path: /home/runner/work/atom-samples/atom-samples/*.sh
+
+      - name: Save cache
+        if: inputs.reset-cache or steps.cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v3
+        with:
+          path: /home/runner/work/src_repos
+          key: ${{ runner.os }}-atom-samples
 
       - name: Commit changes
         if: inputs.commit-updates
