@@ -37,7 +37,7 @@ jobs:
 
       - name: Update slices
         run: |
-          python ./generate.py -s ${{ inputs.filter-slice-type }} filter -i ${{ inputs.filter }}
+          python ./generate.py -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
 
       - name: Upload slices as artifact
         uses: actions/upload-artifact@v3
