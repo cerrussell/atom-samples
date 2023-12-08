@@ -47,13 +47,13 @@ jobs:
       - run: npm install -g @appthreat/atom
 
       -  name: sdkman install
+         if: ${{ ! inputs.reset-cache }}
          shell: bash
          run: |
            curl -s "https://get.sdkman.io" | bash
            source "/home/runner/.sdkman/bin/sdkman-init.sh"
            echo sdkman_auto_answer=true > ~/.sdkman/etc/config
            sdk install java 20.0.2-tem
-           sdk default java 20.0.2-tem
 
       - name: Restore sample repo cache
         if: ${{ ! inputs.reset-cache }}
@@ -77,8 +77,8 @@ jobs:
           SDKMAN_DIR: /home/runner/.sdkman
         run: |
            python generate.py --skip-clone --debug-cmds -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
-           bash /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
-           bash /home/runner/work/atom-samples/atom-samples/atom_commands.sh
+           /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
+           /home/runner/work/atom-samples/atom-samples/atom_commands.sh
 
       #      - name: Update slices without existing cached sample repos
       #        if: (inputs.reset-cache || ${{ ! steps.cache.outputs.cache-hit }}) && ${{ ! inputs.debug-cmds }}

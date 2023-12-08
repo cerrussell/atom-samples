@@ -113,7 +113,7 @@ def generate(repo_data, clone_dir, output_dir, slice_types, clone, debug_cmds, s
         commands += f"\n{subprocess.list2cmdline(['cd', loc])}"
 
         if not skip_build and lang == 'java':
-            commands += f'\n{subprocess.list2cmdline(["sdk", "env", "clear"])}'
+            commands += f'\n{subprocess.list2cmdline(["sdk", "use", "java", "20.0.2-tem"])}'
 
         for stype in slice_types:
             slice_file = os.path.join(output_dir, lang, f"{project}-{stype}.json")
@@ -166,16 +166,17 @@ def use_script(file_path, commands, debug_cmds):
     with open(file_path, 'w', encoding='utf-8') as f:
         sdkman_path = os.path.join('$SDKMAN_DIR', 'bin', 'sdkman-init.sh')
         f.write(f'#!/usr/bin/bash\"\nsource {sdkman_path}\n\n')
+        f.write('sdk use java 20.0.2-tem"\n')
         f.write(commands)
     if debug_cmds:
         print(commands)
-    # else:
-    #     cmd = ['sudo', 'chmod', '+x', file_path]
-    #     cp = subprocess.run(cmd, shell=True,
-    #         stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-    #         env=os.environ.copy(), encoding='utf-8', check=False, )
-    #
-    #     print(cp.stdout)
+    else:
+        cmd = ['bash', file_path]
+        cp = subprocess.run(cmd, shell=True,
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+            env=os.environ.copy(), encoding='utf-8', check=False, )
+
+        print(cp.stdout)
 
 
 def check_dirs(clone, clone_dir, output_dir):
