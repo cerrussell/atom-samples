@@ -164,7 +164,7 @@ def run_pre_builds(repo_data, output_dir, debug_cmds):
 
 def use_script(file_path, commands, debug_cmds):
     with open(file_path, 'w', encoding='utf-8') as f:
-        sdkman_path = os.path.join('$HOME', 'bin', 'sdkman-init.sh')
+        sdkman_path = os.path.join('$SDKMAN_DIR', 'bin', 'sdkman-init.sh')
         f.write(f'#!/usr/bin/bash\"\nsource {sdkman_path}\n\n')
         f.write(commands)
     if debug_cmds:
