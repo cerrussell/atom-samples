@@ -74,7 +74,7 @@ def build_args():
 
 
 def generate(repo_data, clone_dir, output_dir, slice_types, clone, debug_cmds):
-    run_pre_builds(repo_data)
+    run_pre_builds(repo_data, output_dir, debug_cmds)
 
     commands = ''
 
@@ -86,8 +86,9 @@ def generate(repo_data, clone_dir, output_dir, slice_types, clone, debug_cmds):
         if clone and not debug_cmds:
             clone_repo(repo['link'], clone_dir, repo_dir)
 
+        commands += f'\ncd {repo_dir}'
+
         if len(repo['pre_build_cmd']) > 0:
-            commands += f'\ncd {repo_dir}'
             cmds = repo['pre_build_cmd'].split(';')
             cmds = [cmd.lstrip().rstrip() for cmd in cmds]
             for cmd in cmds:
@@ -119,9 +120,10 @@ def generate(repo_data, clone_dir, output_dir, slice_types, clone, debug_cmds):
 
         commands += '\n\n'
 
-    with open('atom_commands.sh', 'w', encoding='utf-8') as f:
-        f.write('#!/usr/bin/env bash\n')
-        f.write('source "/${SDKMAN_DIR}/bin/sdkman-init.sh"\n')
+    sh_path = os.path.join(output_dir, 'atom_commands.sh')
+    with open(sh_path, 'w', encoding='utf-8') as f:
+        f.write('#!/usr/bin/env bash\n\n')
+        f.write('source "/${SDKMAN_DIR}/bin/sdkman-init.sh"\n\n')
         f.write(commands)
 
     if debug_cmds:
@@ -154,7 +156,7 @@ def clone_repo(url, clone_dir, repo_dir):
     subprocess.run(clone_cmd, shell=True, encoding='utf-8', check=False)
     
 
-def run_pre_builds(repo_data, debug_cmds=False):
+def run_pre_builds(repo_data, output_dir, debug_cmds):
     cmds = []
     [
         cmds.extend(row['pre_build_cmd'].split(';'))
@@ -165,6 +167,7 @@ def run_pre_builds(repo_data, debug_cmds=False):
     cmds = set(cmds)
 
     commands = [c.replace('use', 'install') for c in cmds]
+    sh_path = os.path.join(output_dir, 'sdkman_installs.sh')
     with open('sdkman_installs.sh', 'w', encoding='utf-8') as f:
         f.write('#!/usr/bin/env bash\n')
         f.write('source "/${SDKMAN_DIR}/bin/sdkman-init.sh"\n')
@@ -195,7 +198,7 @@ def main():
     langs = set(args.langs)
     if args.elangs:
         langs = langs - set(args.elangs)
-    check_dirs(args.clone, args.clone_dir, args.output_dir)
+    # check_dirs(args.clone, args.clone_dir, args.output_dir)
     repo_data = read_csv(args.repo_csv, langs)
     generate(repo_data, args.clone_dir, args.output_dir, args.slice_types, args.clone, args.debug_cmds)
 
