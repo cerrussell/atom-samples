@@ -68,7 +68,6 @@ def build_args():
         '--debug-cmds',
         action='store_true',
         dest='debug_cmds',
-        default=False,
     )
     return parser.parse_args()
 
