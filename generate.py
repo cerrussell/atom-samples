@@ -1,5 +1,6 @@
 import csv
 import logging
+import pathlib
 import subprocess
 import os
 import argparse
@@ -10,14 +11,14 @@ def build_args():
     parser.set_defaults(slice_types=['usages', 'reachables'])
     parser.add_argument(
         '--repo-csv',
-        type=str,
+        type=pathlib.Path,
         default='sources.csv',
         help='Path to sources.csv',
         dest='repo_csv'
     )
     parser.add_argument(
         '--clone-dir',
-        type=str,
+        type=pathlib.Path,
         default='/home/runner/work/src_repos',
         help='Path to src_repos',
         dest='clone_dir'
@@ -25,7 +26,7 @@ def build_args():
     parser.add_argument(
         '-o',
         '--output-dir',
-        type=str,
+        type=pathlib.Path,
         default='/home/runner/work/atom-samples/atom-samples',
         help='Path to output',
         dest='output_dir'
@@ -159,13 +160,13 @@ def use_script(file_path, commands, debug_cmds):
         f.write(commands)
     if debug_cmds:
         print(commands)
-    else:
-        cmd = ['sudo', 'chmod', '+x', file_path]
-        cp = subprocess.run(cmd, shell=True,
-            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-            env=os.environ.copy(), encoding='utf-8', check=False, )
-
-        print(cp.stdout)
+    # else:
+    #     cmd = ['sudo', 'chmod', '+x', file_path]
+    #     cp = subprocess.run(cmd, shell=True,
+    #         stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+    #         env=os.environ.copy(), encoding='utf-8', check=False, )
+    #
+    #     print(cp.stdout)
 
 
 def check_dirs(clone, clone_dir, output_dir):
@@ -181,7 +182,7 @@ def main():
     if args.elangs:
         langs = langs - set(args.elangs)
     # if not args.debug_cmds or not os.getenv('CI'):
-    check_dirs(args.clone, args.clone_dir, args.output_dir)
+    # check_dirs(args.clone, args.clone_dir, args.output_dir)
     repo_data = read_csv(args.repo_csv, langs)
     generate(repo_data, args.clone_dir, args.output_dir, args.slice_types, args.clone, args.debug_cmds)
 

@@ -67,9 +67,11 @@ jobs:
       - name: Debug run only
 #        if: steps.debug-cmds
         run: |
-          python ./generate.py --skip-clone --debug-cmds -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
-          /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
-          /home/runner/work/atom-samples/atom-samples/atom_commands.sh
+          python ./generate.py --skip-clone -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}          
+          #          python ./generate.py --skip-clone --debug-cmds -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
+          ls -l /home/runner/work/atom-samples/atom-samples
+#          /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
+#          /home/runner/work/atom-samples/atom-samples/atom_commands.sh
 
       - name: Upload slices as artifact
         uses: actions/upload-artifact@v3
@@ -83,6 +85,11 @@ jobs:
           name: scripts
           path: /home/runner/work/atom-samples/atom-samples/*.sh
 
+      - name: Try running
+        run: |
+          sudo chmod +x /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
+          sudo chmod +x /home/runner/work/atom-samples/atom-samples/atom_commands.sh
+
       - name: Save cache
         if: inputs.reset-cache || ${{ ! steps.cache.outputs.cache-hit }}
         uses: actions/cache/save@v3
@@ -95,8 +102,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          rm /home/runner/work/atom-samples/atom-samples/atom_commands.sh
-          rm /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
+#          rm /home/runner/work/atom-samples/atom-samples/atom_commands.sh
+#          rm /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
           git config user.name "Caroline Russell"
           git config user.email "caroline@appthreat.dev"
           git add .
