@@ -53,8 +53,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          rm atom_commands.sh
-          rm sdkman_installs.sh
+          rm /home/runner/work/atom-samples/atom-samples/atom_commands.sh
+          rm /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
           git config user.name "Caroline Russell"
           git config user.email "caroline@appthreat.dev"
           git add .
