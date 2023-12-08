@@ -89,6 +89,8 @@ jobs:
         run: |
           sudo chmod +x /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
           sudo chmod +x /home/runner/work/atom-samples/atom-samples/atom_commands.sh
+          /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
+          /home/runner/work/atom-samples/atom-samples/atom_commands.sh
 
       - name: Save cache
         if: inputs.reset-cache || ${{ ! steps.cache.outputs.cache-hit }}

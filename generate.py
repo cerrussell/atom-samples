@@ -70,13 +70,21 @@ def build_args():
         action='store_true',
         dest='debug_cmds',
     )
+    parser.add_argument(
+        '--skip-build',
+        action='store_true',
+        dest='skip_build',
+        default=False,
+        help='Skip building the samples and just run atom. Should be used with --skip-clone'
+    )
     return parser.parse_args()
 
 
-def generate(repo_data, clone_dir, output_dir, slice_types, clone, debug_cmds):
-    run_pre_builds(repo_data, output_dir, debug_cmds)
+def generate(repo_data, clone_dir, output_dir, slice_types, clone, debug_cmds, skip_build):
+    if not skip_build:
+        run_pre_builds(repo_data, output_dir, debug_cmds)
 
-    commands = ''
+    commands = f'\n{subprocess.list2cmdline(["sdk", "use", "java", "20.0.2-tem"])}' if skip_build else ''
 
     for repo in repo_data:
         project = repo['project']
@@ -86,25 +94,26 @@ def generate(repo_data, clone_dir, output_dir, slice_types, clone, debug_cmds):
         if clone:
             clone_repo(repo['link'], clone_dir, repo_dir)
 
-        commands += f'\ncd {repo_dir}'
+        commands += f"\n{subprocess.list2cmdline(['cd', repo_dir])}"
 
-        if len(repo['pre_build_cmd']) > 0:
+        if not skip_build and len(repo['pre_build_cmd']) > 0:
             cmds = repo['pre_build_cmd'].split(';')
             cmds = [cmd.lstrip().rstrip() for cmd in cmds]
             for cmd in cmds:
                 new_cmd = list(cmd.split(' '))
                 commands += f"\n{subprocess.list2cmdline(new_cmd)}"
 
-        if len(repo['build_cmd']) > 0:
+        if not skip_build and len(repo['build_cmd']) > 0:
             cmds = repo['build_cmd'].split(';')
             cmds = [cmd.lstrip().rstrip() for cmd in cmds]
             for cmd in cmds:
                 new_cmd = list(cmd.split(' '))
                 commands += f"\n{subprocess.list2cmdline(new_cmd)}"
 
-        commands += f'\ncd {loc}'
-        if lang == 'java':
-            commands += f'\nsdk use java 20.0.2-tem'
+        commands += f"\n{subprocess.list2cmdline(['cd', loc])}"
+
+        if not skip_build and lang == 'java':
+            commands += f'\n{subprocess.list2cmdline(["sdk", "use", "java", "20.0.2-tem"])}'
 
         for stype in slice_types:
             slice_file = os.path.join(output_dir, lang, f"{project}-{stype}.json")
@@ -184,7 +193,7 @@ def main():
     # if not args.debug_cmds or not os.getenv('CI'):
     # check_dirs(args.clone, args.clone_dir, args.output_dir)
     repo_data = read_csv(args.repo_csv, langs)
-    generate(repo_data, args.clone_dir, args.output_dir, args.slice_types, args.clone, args.debug_cmds)
+    generate(repo_data, args.clone_dir, args.output_dir, args.slice_types, args.clone, args.debug_cmds, args.skip_build)
 
 
 if __name__ == '__main__':
