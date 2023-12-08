@@ -42,17 +42,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
-
-      - run: npm install -g @appthreat/atom
-
-      - name: Restore sample repo cache
-        if: ${{ ! inputs.reset-cache }}
-        uses: actions/cache/restore@v3
-        id: cache
-        with:
-          path: /home/runner/work/src_repos
-          key: ${{ runner.os }}-atom-samples
+#      - uses: actions/checkout@v4
+#
+#      - run: npm install -g @appthreat/atom
+#
+#      - name: Restore sample repo cache
+#        if: ${{ ! inputs.reset-cache }}
+#        uses: actions/cache/restore@v3
+#        id: cache
+#        with:
+#          path: /home/runner/work/src_repos
+#          key: ${{ runner.os }}-atom-samples
 
 #      - name: Update slices without existing cached sample repos
 #        if: (inputs.reset-cache || ${{ ! steps.cache.outputs.cache-hit }}) && ${{ ! inputs.debug-cmds }}
@@ -67,44 +67,45 @@ jobs:
       - name: Debug run only
 #        if: steps.debug-cmds
         run: |
-          python ./generate.py --skip-clone -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
-          sudo chmod +x /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
-          sudo chmod +x /home/runner/work/atom-samples/atom-samples/atom_commands.sh
-          ./sdkman_installs.sh
-          ./atom_commands.sh
+          echo $SDKMAN_DIR
+#          python ./generate.py --skip-clone -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
+#          sudo chmod +x /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
+#          sudo chmod +x /home/runner/work/atom-samples/atom-samples/atom_commands.sh
+#          ./sdkman_installs.sh
+#          ./atom_commands.sh
 
 #          python ./generate.py --skip-clone --debug-cmds -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
 #          /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
 #          /home/runner/work/atom-samples/atom-samples/atom_commands.sh
 
-      - name: Upload slices as artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: slices
-          path: /home/runner/work/atom-samples/atom-samples/**/*.json
+#      - name: Upload slices as artifact
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: slices
+#          path: /home/runner/work/atom-samples/atom-samples/**/*.json
+#
+#      - name: Upload shell scripts generated as artifact
+#        uses: actions/upload-artifact@v3
+#        with:
+#          name: scripts
+#          path: /home/runner/work/atom-samples/atom-samples/*.sh
 
-      - name: Upload shell scripts generated as artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: scripts
-          path: /home/runner/work/atom-samples/atom-samples/*.sh
-
-      - name: Save cache
-        if: inputs.reset-cache || ${{ ! steps.cache.outputs.cache-hit }}
-        uses: actions/cache/save@v3
-        with:
-          path: /home/runner/work/src_repos
-          key: ${{ runner.os }}-atom-samples
-
-      - name: Commit changes
-        if: inputs.commit-updates && ${{ ! inputs.debug-cmds }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git config user.name "Caroline Russell"
-          git config user.email "caroline@appthreat.dev"
-          git add .
-          git commit -m "${{ inputs.commit-msg }}"
-          git push
+#      - name: Save cache
+#        if: inputs.reset-cache || ${{ ! steps.cache.outputs.cache-hit }}
+#        uses: actions/cache/save@v3
+#        with:
+#          path: /home/runner/work/src_repos
+#          key: ${{ runner.os }}-atom-samples
+#
+#      - name: Commit changes
+#        if: inputs.commit-updates && ${{ ! inputs.debug-cmds }}
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        run: |
+#          git config user.name "Caroline Russell"
+#          git config user.email "caroline@appthreat.dev"
+#          git add .
+#          git commit -m "${{ inputs.commit-msg }}"
+#          git push
 #          rm /home/runner/work/atom-samples/atom-samples/atom_commands.sh
 #          rm /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
