@@ -85,7 +85,7 @@ jobs:
           key: ${{ runner.os }}-atom-samples
 
       - name: Commit changes
-        if: inputs.commit-updates && ${{ ! inputs,debug-cmds }}
+        if: inputs.commit-updates && ${{ ! inputs.debug-cmds }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
