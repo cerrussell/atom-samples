@@ -13,10 +13,10 @@ on:
         required: false
         default: "Slice update"
         type: string
-      filter-slice-type:
-        description: Generate this slice type
+      args:
+        description: Generate only this slice type
         required: false
-        default: 'usages reachables'
+        default: ''
         type: string
       filter:
         description: Generate only for these languages (separated by spaces)

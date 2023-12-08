@@ -7,7 +7,7 @@ import argparse
 
 def build_args():
     parser = argparse.ArgumentParser()
-    parser.set_defaults(langs=['java', 'python', 'javascript'], elangs=[])
+    parser.set_defaults(slice_types=['usages', 'reachables'], langs=['java', 'python', 'javascript'], elangs=[])
     parser.add_argument(
         '--repo-csv',
         type=str,
@@ -31,35 +31,33 @@ def build_args():
         dest='output_dir'
     )
     subparsers = parser.add_subparsers()
-    lang_parser = subparsers.add_parser(
-        'filter',
-        help='Filter languages to include or exclude')
-    lang_parser_group = lang_parser.add_mutually_exclusive_group()
+    # lang_parser = subparsers.add_parser(
+    #     'filter',
+    #     help='Filter languages to include or exclude')
+    lang_parser_group = parser.add_mutually_exclusive_group()
     lang_parser_group.set_defaults(langs=['java', 'python', 'javascript'])
     lang_parser_group.add_argument(
         '-i',
-        '--include',
+        '--include-langs',
         choices=['java', 'python', 'javascript'],
         help='Languages to generate samples for',
         dest='langs',
         nargs='*',
-
     )
     lang_parser_group.add_argument(
         '-e',
-        '--exclude',
+        '--exclude-langs',
         choices=['java', 'python', 'javascript'],
         dest='elangs',
         nargs='*'
     )
     parser.add_argument(
         '-s',
-        '--slice_types',
+        '--slice-type',
         choices=['usages', 'reachables'],
-        default=['usages', 'reachables'],
-        help='Slice types to generate, default is both usages and reachables',
+        help='Slice type to generate',
         dest='slice_types',
-        nargs='?'
+        nargs=1
     )
     parser.add_argument(
         '--skip-clone',
@@ -68,7 +66,8 @@ def build_args():
         default=True,
         help='Skip cloning the repositories (must be used with the --repo-dir argument)'
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+    return args
 
 
 def generate(repo_data, clone_dir, output_dir, slice_types, clone):
