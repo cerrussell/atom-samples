@@ -172,6 +172,7 @@ def use_script(file_path, commands, debug_cmds):
         sdkman_path = os.path.join('home', 'runner', '.sdkman', 'bin', 'sdkman-init.sh')
         f.write(f'#!/usr/bin/bash\nsource "{sdkman_path}"\n\n')
         f.write(commands)
+    print(f'wrote {file_path}')
     if debug_cmds:
         print(commands)
     # else:
