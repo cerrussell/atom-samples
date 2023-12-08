@@ -38,7 +38,7 @@ jobs:
       - run: npm install -g @appthreat/atom
 
       - name: Restore sample repo cache
-        if: inputs.reset-cache != 'true'
+        if: inputs.reset-cache
         uses: actions/cache/restore@v3
         id: cache
         with:
@@ -46,12 +46,12 @@ jobs:
           key: ${{ runner.os }}-atom-samples
 
       - name: Update slices without existing cached sample repos
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: ${{ ! steps.cache.outputs.cache-hit }}
         run: |
           python ./generate.py -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
 
       - name: Update slices without existing cached sample repos
-        if: steps.cache.outputs.cache-hit == 'true'
+        if: steps.cache.outputs.cache-hit
         run: |
           python ./generate.py --skip-clone -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
 
@@ -68,7 +68,7 @@ jobs:
           path: /home/runner/work/atom-samples/atom-samples/*.sh
 
       - name: Save cache
-        if: inputs.reset-cache or steps.cache.outputs.cache-hit != 'true'
+        if: inputs.reset-cache || ${{ ! steps.cache.outputs.cache-hit }}
         uses: actions/cache/save@v3
         with:
           path: /home/runner/work/src_repos
