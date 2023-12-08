@@ -47,7 +47,7 @@ jobs:
       - run: npm install -g @appthreat/atom
 
       - name: Restore sample repo cache
-        if: $ {{ !inputs.reset-cache }}
+        if: ${{ !inputs.reset-cache }}
         uses: actions/cache/restore@v3
         id: cache
         with:
