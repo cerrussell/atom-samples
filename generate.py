@@ -161,6 +161,7 @@ def use_script(file_path, commands, debug_cmds):
     if debug_cmds:
         print(commands)
     else:
+        cmd = ['sudo', file_path]
         cp = subprocess.run(file_path, shell=True,
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
             env=os.environ.copy(), encoding='utf-8', check=False, )
