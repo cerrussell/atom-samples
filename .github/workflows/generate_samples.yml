@@ -56,7 +56,7 @@ jobs:
           python ./generate.py -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
 
       - name: Update slices without existing cached sample repos
-        if: steps.cache.outputs.cache-hit && ${{ ! inputs,debug-cmds }}
+        if: steps.cache.outputs.cache-hit && ${{ ! inputs.debug-cmds }}
         run: |
           python ./generate.py --skip-clone -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
 
