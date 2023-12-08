@@ -77,8 +77,8 @@ jobs:
           SDKMAN_DIR: /home/runner/.sdkman
         run: |
            python generate.py --skip-clone --debug-cmds -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
-           /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
-           /home/runner/work/atom-samples/atom-samples/atom_commands.sh
+#           /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
+#           /home/runner/work/atom-samples/atom-samples/atom_commands.sh
 
       #      - name: Update slices without existing cached sample repos
       #        if: (inputs.reset-cache || ${{ ! steps.cache.outputs.cache-hit }}) && ${{ ! inputs.debug-cmds }}
