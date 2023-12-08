@@ -42,9 +42,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-#      - uses: actions/checkout@v4
-#
-#      - run: npm install -g @appthreat/atom
+      - uses: actions/checkout@v4
+
+      - run: npm install -g @appthreat/atom
       -  name: test
          run: | 
           curl -s "https://get.sdkman.io" | bash
