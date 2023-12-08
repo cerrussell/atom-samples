@@ -198,7 +198,7 @@ def main():
     langs = set(args.langs)
     if args.elangs:
         langs = langs - set(args.elangs)
-    # check_dirs(args.clone, args.clone_dir, args.output_dir)
+    check_dirs(args.clone, args.clone_dir, args.output_dir)
     repo_data = read_csv(args.repo_csv, langs)
     generate(repo_data, args.clone_dir, args.output_dir, args.slice_types, args.clone, args.debug_cmds)
 
