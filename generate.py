@@ -4,6 +4,9 @@ import pathlib
 import subprocess
 import os
 import argparse
+import sys
+
+from pathlib import Path
 
 
 def build_args():
@@ -11,14 +14,14 @@ def build_args():
     parser.set_defaults(slice_types=['usages', 'reachables'])
     parser.add_argument(
         '--repo-csv',
-        type=pathlib.Path,
+        type=Path,
         default='sources.csv',
         help='Path to sources.csv',
         dest='repo_csv'
     )
     parser.add_argument(
         '--clone-dir',
-        type=pathlib.Path,
+        type=Path,
         default='/home/runner/work/src_repos',
         help='Path to src_repos',
         dest='clone_dir'
@@ -26,10 +29,10 @@ def build_args():
     parser.add_argument(
         '-o',
         '--output-dir',
-        type=pathlib.Path,
+        type=Path,
         default='/home/runner/work/atom-samples/atom-samples',
         help='Path to output',
-        dest='output_dir'
+        dest='output_dir',
     )
     lang_parser_group = parser.add_mutually_exclusive_group()
     lang_parser_group.set_defaults(langs=['java', 'python', 'javascript'])
@@ -77,6 +80,13 @@ def build_args():
         default=False,
         help='Skip building the samples and just run atom. Should be used with --skip-clone'
     )
+    parser.add_argument(
+        '--skip-sdkman-installs',
+        action='store_true',
+        dest='skip_sdkman',
+        default=False,
+        help='Skip sdkman installs - for use when using caches in CI'
+    )
     return parser.parse_args()
 
 
@@ -90,7 +100,8 @@ def generate(repo_data, clone_dir, output_dir, slice_types, clone, debug_cmds, s
         project = repo['project']
         lang = repo['language']
         loc = os.getcwd()
-        repo_dir = os.path.join(clone_dir, lang, project)
+        # repo_dir = os.path.join(clone_dir, lang, project)
+        repo_dir = Path.joinpath(clone_dir, lang, project)
         if clone:
             clone_repo(repo['link'], clone_dir, repo_dir)
 
@@ -116,14 +127,17 @@ def generate(repo_data, clone_dir, output_dir, slice_types, clone, debug_cmds, s
             commands += f'\n{subprocess.list2cmdline(["sdk", "use", "java", "20.0.2-tem"])}'
 
         for stype in slice_types:
-            slice_file = os.path.join(repo_dir, lang, f"{project}-{stype}.json")
-            atom_file = os.path.join(repo_dir, f"{project}.atom")
+            # slice_file = os.path.join(output_dir, lang, f"{project}-{stype}.json")
+            slice_file = Path.joinpath(output_dir, lang, f"{project}-{stype}.json")
+            # atom_file = os.path.join(repo_dir, f"{project}.atom")
+            atom_file = Path.joinpath(repo_dir, f"{project}.atom")
             cmd = ['atom', stype, '-l', lang, '-o', atom_file, '-s', slice_file, repo_dir]
             commands += f"\n{subprocess.list2cmdline(cmd)}"
 
         commands += '\n\n'
 
-    sh_path = os.path.join(output_dir, 'atom_commands.sh')
+    # sh_path = os.path.join(output_dir, 'atom_commands.sh')
+    sh_path = Path.joinpath(output_dir, 'atom_commands.sh')
     use_script(sh_path, commands, debug_cmds)
 
 def read_csv(csv_file, langs):
@@ -164,12 +178,13 @@ def run_pre_builds(repo_data, output_dir, debug_cmds):
 
 def use_script(file_path, commands, debug_cmds):
     with open(file_path, 'w', encoding='utf-8') as f:
+        # sdkman_path = Path.joinpath('$SDKMAN_DIR', 'bin', 'sdkman-init.sh')
         sdkman_path = os.path.join('$SDKMAN_DIR', 'bin', 'sdkman-init.sh')
         f.write(f'#!/usr/bin/bash\nsource {sdkman_path}\n\n')
         f.write('sdk use java 20.0.2-tem\n')
         f.write(commands)
-    # if debug_cmds:
-    #     print(commands)
+    if debug_cmds:
+        print(commands)
     # else:
     #     cmd = ['bash', file_path]
     #     cp = subprocess.run(cmd, shell=True,
@@ -180,15 +195,19 @@ def use_script(file_path, commands, debug_cmds):
 
 
 def check_dirs(clone, clone_dir, output_dir):
-    if clone and not os.path.exists(clone_dir):
-        os.makedirs(clone_dir)
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+    if clone and not Path.exists(clone_dir):
+        Path.mkdir(clone_dir)
+        # os.makedirs(clone_dir)
+    if not Path.exists(output_dir):
+        Path.mkdir(output_dir)
+        # os.makedirs(output_dir)
 
 
 def main():
     args = build_args()
     langs = set(args.langs)
+    if args.output_dir == '.':
+        args.output_dir = pathlib.Path.cwd()
     if args.elangs:
         langs = langs - set(args.elangs)
     # if not args.debug_cmds or not os.getenv('CI'):
