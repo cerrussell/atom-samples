@@ -52,10 +52,9 @@ jobs:
            curl -s "https://get.sdkman.io" | bash
            source "/home/runner/.sdkman/bin/sdkman-init.sh"
            echo sdkman_auto_answer=true > ~/.sdkman/etc/config
-           sdk install java 20.0.2-tem
 
       - name: Restore sample repo cache
-        if: ${{ ! inputs.reset-cache }}
+#        if: ${{ ! inputs.reset-cache }}
         uses: actions/cache/restore@v3
         id: cache
         with:
@@ -75,6 +74,7 @@ jobs:
         env:
           SDKMAN_DIR: /home/runner/.sdkman
         run: |
+           sdk install java 20.0.2-tem
            python generate.py -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
 #           /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
 #           /home/runner/work/atom-samples/atom-samples/atom_commands.sh
@@ -109,14 +109,14 @@ jobs:
           path: /home/runner/work/atom-samples/atom-samples/*.sh
 
       - name: Save repo cache
-        if: inputs.reset-cache || ${{ ! steps.cache.outputs.cache-hit }}
+#        if: inputs.reset-cache || ${{ ! steps.cache.outputs.cache-hit }}
         uses: actions/cache/save@v3
         with:
           path: /home/runner/work/src_repos
           key: ${{ runner.os }}-atom-samples
 
       - name: Save sdkman cache
-        if: inputs.reset-cache || ${{ ! steps.cache.outputs.cache-hit }}
+#        if: inputs.reset-cache || ${{ ! steps.cache.outputs.cache-hit }}
         uses: actions/cache/save@v3
         with:
           path: /home/runner/.sdkman/candidates
