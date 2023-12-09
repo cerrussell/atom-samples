@@ -116,7 +116,7 @@ def generate(repo_data, clone_dir, output_dir, slice_types, clone, debug_cmds, s
             commands += f'\n{subprocess.list2cmdline(["sdk", "use", "java", "20.0.2-tem"])}'
 
         for stype in slice_types:
-            slice_file = os.path.join(output_dir, lang, f"{project}-{stype}.json")
+            slice_file = os.path.join(repo_dir, lang, f"{project}-{stype}.json")
             atom_file = os.path.join(repo_dir, f"{project}.atom")
             cmd = ['atom', stype, '-l', lang, '-o', atom_file, '-s', slice_file, repo_dir]
             commands += f"\n{subprocess.list2cmdline(cmd)}"
