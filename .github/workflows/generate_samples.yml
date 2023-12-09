@@ -47,7 +47,6 @@ jobs:
       - run: npm install -g @appthreat/atom
 
       -  name: sdkman install
-         shell: bash
          run: |
            curl -s "https://get.sdkman.io" | bash
            source "/home/runner/.sdkman/bin/sdkman-init.sh"
@@ -62,23 +61,22 @@ jobs:
           path: /home/runner/work/src_repos
           key: ${{ runner.os }}-atom-samples
 
-#      - name: Restore sdkman install cache
-#        if: ${{ ! inputs.reset-cache }}
-#        uses: actions/cache/restore@v3
-#        id: sdkman-cache
-#        with:
-#          path: /home/runner/.sdkman/candidates
-#          key: ${{ runner.os }}-sdkman
+      - name: Restore sdkman install cache
+        if: ${{ ! inputs.reset-cache }}
+        uses: actions/cache/restore@v3
+        id: sdkman-cache
+        with:
+          path: /home/runner/.sdkman/candidates
+          key: ${{ runner.os }}-sdkman
 
       - name: Generate slices
-        shell: bash
         if: ${{ ! inputs.debug-cmds }}
         env:
           SDKMAN_DIR: /home/runner/.sdkman
         run: |
-           python generate.py -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
-#           /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
-#           /home/runner/work/atom-samples/atom-samples/atom_commands.sh
+           python generate.py --skip-clone -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
+           bash /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
+           bash /home/runner/work/atom-samples/atom-samples/atom_commands.sh
 
       - name: Upload slices as artifact
         uses: actions/upload-artifact@v3
@@ -100,7 +98,7 @@ jobs:
           key: ${{ runner.os }}-atom-samples
 
       - name: Save sdkman cache
-#        if: inputs.reset-cache || ${{ ! steps.cache.outputs.cache-hit }}
+        if: inputs.reset-cache || ${{ ! steps.cache.outputs.cache-hit }}
         uses: actions/cache/save@v3
         with:
           path: /home/runner/.sdkman/candidates
