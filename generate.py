@@ -100,7 +100,6 @@ def generate(repo_data, clone_dir, output_dir, slice_types, clone, debug_cmds, s
         project = repo['project']
         lang = repo['language']
         loc = os.getcwd()
-        # repo_dir = os.path.join(clone_dir, lang, project)
         repo_dir = Path.joinpath(clone_dir, lang, project)
         if clone:
             clone_repo(repo['link'], clone_dir, repo_dir)
@@ -127,9 +126,7 @@ def generate(repo_data, clone_dir, output_dir, slice_types, clone, debug_cmds, s
             commands += f'\n{subprocess.list2cmdline(["sdk", "use", "java", "20.0.2-tem"])}'
 
         for stype in slice_types:
-            # slice_file = os.path.join(output_dir, lang, f"{project}-{stype}.json")
             slice_file = Path.joinpath(output_dir, lang, f"{project}-{stype}.json")
-            # atom_file = os.path.join(repo_dir, f"{project}.atom")
             atom_file = Path.joinpath(repo_dir, f"{project}.atom")
             cmd = ['atom', stype, '-l', lang, '-o', atom_file, '-s', slice_file, repo_dir]
             commands += f"\n{subprocess.list2cmdline(cmd)}"
@@ -153,9 +150,10 @@ def read_csv(csv_file, langs):
 
 def clone_repo(url, clone_dir, repo_dir):
     os.chdir(clone_dir)
-    if os.path.exists(repo_dir):
+    if Path.exists(repo_dir):
         logging.warning(f'{repo_dir} already exists, skipping clone.')
         return
+
     clone_cmd = f'git clone {url} {repo_dir}'
     subprocess.run(clone_cmd, shell=True, encoding='utf-8', check=False)
     
@@ -178,29 +176,20 @@ def run_pre_builds(repo_data, output_dir, debug_cmds):
 
 def use_script(file_path, commands, debug_cmds):
     with open(file_path, 'w', encoding='utf-8') as f:
-        # sdkman_path = Path.joinpath('$SDKMAN_DIR', 'bin', 'sdkman-init.sh')
-        sdkman_path = os.path.join('$SDKMAN_DIR', 'bin', 'sdkman-init.sh')
+        sdkman_path = Path.joinpath(Path('$SDKMAN_DIR'), 'bin', 'sdkman-init.sh')
+        # sdkman_path = os.path.join('$SDKMAN_DIR', 'bin', 'sdkman-init.sh')
         f.write(f'#!/usr/bin/bash\nsource {sdkman_path}\n\n')
         f.write('sdk use java 20.0.2-tem\n')
         f.write(commands)
     if debug_cmds:
         print(commands)
-    # else:
-    #     cmd = ['bash', file_path]
-    #     cp = subprocess.run(cmd, shell=True,
-    #         stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-    #         env=os.environ.copy(), encoding='utf-8', check=False, )
-    #
-    #     print(cp.stdout)
 
 
 def check_dirs(clone, clone_dir, output_dir):
     if clone and not Path.exists(clone_dir):
         Path.mkdir(clone_dir)
-        # os.makedirs(clone_dir)
     if not Path.exists(output_dir):
         Path.mkdir(output_dir)
-        # os.makedirs(output_dir)
 
 
 def main():
@@ -210,7 +199,6 @@ def main():
         args.output_dir = pathlib.Path.cwd()
     if args.elangs:
         langs = langs - set(args.elangs)
-    # if not args.debug_cmds or not os.getenv('CI'):
     check_dirs(args.clone, args.clone_dir, args.output_dir)
     repo_data = read_csv(args.repo_csv, langs)
     generate(repo_data, args.clone_dir, args.output_dir, args.slice_types, args.clone, args.debug_cmds, args.skip_build)
