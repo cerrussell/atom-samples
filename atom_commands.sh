@@ -30,34 +30,6 @@ atom usages -l java -o /home/runner/work/src_repos/java/piggymetrics/piggymetric
 atom reachables -l java -o /home/runner/work/src_repos/java/piggymetrics/piggymetrics.atom -s /home/runner/work/atom-samples/atom-samples/java/piggymetrics-reachables.json /home/runner/work/src_repos/java/piggymetrics
 
 
-cd /home/runner/work/src_repos/javascript/axios
-npm install
-cd /home/runner/work/atom-samples/atom-samples
-atom usages -l javascript -o /home/runner/work/src_repos/javascript/axios/axios.atom -s /home/runner/work/atom-samples/atom-samples/javascript/axios-usages.json /home/runner/work/src_repos/javascript/axios
-atom reachables -l javascript -o /home/runner/work/src_repos/javascript/axios/axios.atom -s /home/runner/work/atom-samples/atom-samples/javascript/axios-reachables.json /home/runner/work/src_repos/javascript/axios
-
-
-cd /home/runner/work/src_repos/javascript/videojs
-npm install
-cd /home/runner/work/atom-samples/atom-samples
-atom usages -l javascript -o /home/runner/work/src_repos/javascript/videojs/videojs.atom -s /home/runner/work/atom-samples/atom-samples/javascript/videojs-usages.json /home/runner/work/src_repos/javascript/videojs
-atom reachables -l javascript -o /home/runner/work/src_repos/javascript/videojs/videojs.atom -s /home/runner/work/atom-samples/atom-samples/javascript/videojs-reachables.json /home/runner/work/src_repos/javascript/videojs
-
-
-cd /home/runner/work/src_repos/javascript/sequelize
-yarn install
-cd /home/runner/work/atom-samples/atom-samples
-atom usages -l javascript -o /home/runner/work/src_repos/javascript/sequelize/sequelize.atom -s /home/runner/work/atom-samples/atom-samples/javascript/sequelize-usages.json /home/runner/work/src_repos/javascript/sequelize
-atom reachables -l javascript -o /home/runner/work/src_repos/javascript/sequelize/sequelize.atom -s /home/runner/work/atom-samples/atom-samples/javascript/sequelize-reachables.json /home/runner/work/src_repos/javascript/sequelize
-
-
-cd /home/runner/work/src_repos/javascript/ava
-npm install
-cd /home/runner/work/atom-samples/atom-samples
-atom usages -l javascript -o /home/runner/work/src_repos/javascript/ava/ava.atom -s /home/runner/work/atom-samples/atom-samples/javascript/ava-usages.json /home/runner/work/src_repos/javascript/ava
-atom reachables -l javascript -o /home/runner/work/src_repos/javascript/ava/ava.atom -s /home/runner/work/atom-samples/atom-samples/javascript/ava-reachables.json /home/runner/work/src_repos/javascript/ava
-
-
 cd /home/runner/work/src_repos/python/spaCy
 python -m venv venv
 source venv/bin/activate && pip install .
