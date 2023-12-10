@@ -77,6 +77,20 @@ jobs:
            bash /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
            bash /home/runner/work/atom-samples/atom-samples/atom_commands.sh
 
+      - name: Generate slices - no cache
+        if: ${{ inputs.reset-cache }} && ${{ ! steps.cache.outputs.cache-hit }}
+        env:
+          SDKMAN_DIR: /home/runner/.sdkman
+        run: |
+           python generate.py -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
+           bash /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
+           bash /home/runner/work/atom-samples/atom-samples/atom_commands.sh
+
+      - name: Generate shell scripts only
+        if: ${{ inputs.debug-cmds }}
+        run: |
+          python generate.py -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
+
       - name: Upload slices as artifact
         uses: actions/upload-artifact@v3
         with:
