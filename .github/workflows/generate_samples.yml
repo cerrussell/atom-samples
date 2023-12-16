@@ -60,17 +60,22 @@ jobs:
 
       - name: Set up a branch if pushing
         if: ${{ inputs.commit-updates && contains(fromJSON('["cerrussell", "prabhu"]'), github.actor) && ! inputs.debug-cmds }}
+        shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git checkout -B update/slice-update main^0 --
+          git_cmd="git checkout -b update/slice-update origin/update/slice-update --"
+          sp=$(eval "$git_cmd")
+          if [ "$?" -ne 0 ]; then git_cmd="git checkout -B update/slice-update main^0 --";sp=$(eval "$git_cmd");fi
 
-      -  name: Atom and sdkman install
+      -  name: Atom, cdxgen, sdkman installs
          run: |
+           npm install -g @CycloneDx/cdxgen
            npm install -g @appthreat/atom
            curl -s "https://get.sdkman.io" | bash
            source "/home/runner/.sdkman/bin/sdkman-init.sh"
            echo sdkman_auto_answer=true > ~/.sdkman/etc/config
+           echo sdkman_auto_env=true > ~/.sdkman/etc/config
 
       - name: Allow a custom csv
         if: inputs.custom-csv && contains(fromJSON('["cerrussell", "prabhu"]'), github.actor)
@@ -155,12 +160,24 @@ jobs:
 
       - name: Commit, push, and create PR
         if: ${{ inputs.commit-updates && ! inputs.debug-cmds && contains(fromJSON('["cerrussell", "prabhu"]'), github.actor) }}
+        shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "Caroline Russell"
           git config user.email "caroline@appthreat.dev"
-          git add java javascript python
-          git commit -m "${{ inputs.commit-msg }}"
-          git push --set-upstream origin update/slice-update
-          gh pr create --title "${{ inputs.commit-msg }}" --body "slice updates" --reviewer cerrussell,prabhu
+          git_cmd="git add java javascript python"
+          sp=$(eval "$git_cmd")
+          if [[ $? -eq 0 ]]; then
+          git_cmd='git branch --list -r "origin/update/slice-update"'
+          pr=$(eval "$git_cmd")
+          git_cmd='git commit -m "${inputs.commit-msg}"; git push --set-upstream origin update/slice-update'
+          nsp=$(eval "$git_cmd")
+          if [[ $pr != "origin/update/slice-update" ]]; then
+          git_cmd='gh pr create --title "${inputs.commit-msg}" --body "slice updates" --reviewer cerrussell,prabhu'
+          nsp=$(eval "$git_cmd")
+          fi
+          else
+          git_cmd='echo "No changes to commit."'
+          sp=$(eval "$git_cmd")
+          fi
