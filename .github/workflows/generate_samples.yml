@@ -23,9 +23,10 @@ on:
         default: 'java javascript python'
         type: string
       filter-projects:
-        description: Generate only for these projects (separated by spaces, change language filter values as needed)
+        description: Generate only for these projects (separated by spaces, change language filter values for correct caching)
         required: false
         type: string
+        default: ''
       debug-cmds:
         description: Don't execute commands, just print and upload shell files
         required: false
@@ -50,13 +51,19 @@ jobs:
 
     steps:
       - name: Handle projects input
+        shell: bash
         run: |
           if [ -n "${{ inputs.filter-projects }}" ]; then
-              echo 'FILTER="-p ${{ inputs.filter-projects }}"' >> "$GITHUB_ENV"
-            else
-              echo 'FILTER="-i ${{ inputs.filter-lang }}"' >> "$GITHUB_ENV"
+            cmd="-p ${{ inputs.filter-projects }}"
+            sp=$(eval echo "$cmd")
+            echo "FILTER="$sp"" >> "$GITHUB_ENV"
+          else
+            cmd="-i ${{ inputs.filter-lang }}"
+            sp=$(eval echo "$cmd")
+            echo "FILTER="$sp"" >> "$GITHUB_ENV"
           fi
-          echo 'LANGS="${{ inputs.filter-lang }}"' >> "$GITHUB_ENV"
+          echo "LANGS=${{ inputs.filter-lang }}" >> "$GITHUB_ENV"
+
 
       - name: Echo inputs
         run: |
@@ -83,8 +90,10 @@ jobs:
           pr=$(eval $git_cmd)
           if [ "$pr" != "  origin/update/slice-update" ]; then
             git checkout --force -B update/slice-update $GITHUB_REF --
+            echo "BRANCH=new" >> "$GITHUB_ENV"
           else
             git checkout --force -B update/slice-update refs/remotes/origin/update/slice-update --
+            echo "BRANCH=exists" >> "$GITHUB_ENV"
           fi
 
       -  name: Atom, cdxgen, sdkman installs
@@ -128,8 +137,9 @@ jobs:
         if: ${{ ! inputs.debug-cmds }}
         env:
           SDKMAN_DIR: /home/runner/.sdkman
+          CDXGEN_DEBUG_MODE: debug
         run: |
-          python generate.py -s ${{ inputs.filter-slice-type }} $FILTER
+          python generate.py -s ${{ inputs.filter-slice-type }} ${{ env.FILTER }}
           bash /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
           bash /home/runner/work/atom-samples/atom-samples/atom_commands.sh
           python generate.py --cleanup
@@ -138,6 +148,7 @@ jobs:
         if: ${{ ! inputs.debug-cmds && inputs.run-twice }}
         env:
           SDKMAN_DIR: /home/runner/.sdkman
+          CDXGEN_DEBUG_MODE: debug
         run: |
           mv /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh /home/runner/work/atom-samples/atom-samples/sdkman_installs-run1.sh
           mv /home/runner/work/atom-samples/atom-samples/atom_commands.sh /home/runner/work/atom-samples/atom-samples/atom_commands-run1.sh
@@ -151,7 +162,7 @@ jobs:
       - name: Generate shell scripts only
         if: inputs.debug-cmds
         run: |
-          python generate.py --debug-cmds -s ${{ inputs.filter-slice-type }} $FILTER
+          python generate.py --debug-cmds -s ${{ inputs.filter-slice-type }} ${{ env.FILTER }}
 
       - name: Generate shell scripts only - second run
         if: inputs.debug-cmds && inputs.run-twice
@@ -190,8 +201,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          rm -rf /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
-          rm -rf /home/runner/work/atom-samples/atom-samples/atom_commands.sh
+          if [ -n "${{ inputs.run-twice }}"]; then
+            rm -rf /home/runner/work/atom-samples/atom-samples/sdkman_installs-run1.sh
+            rm -rf /home/runner/work/atom-samples/atom-samples/atom_commands-run1.sh
+            rm -rf /home/runner/work/atom-samples/atom-samples/sdkman_installs-run2.sh
+            rm -rf /home/runner/work/atom-samples/atom-samples/atom_commands-run2.sh
+          else
+            rm -rf /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
+            rm -rf /home/runner/work/atom-samples/atom-samples/atom_commands.sh
+          fi
           git config user.name "Caroline Russell"
           git config user.email "caroline@appthreat.dev"
           git_cmd='git add --dry-run java javascript python'
@@ -206,11 +224,12 @@ jobs:
           fi
           
       - name: Create PR
-        if: ${{ env.CHANGES == 'pushed' }}
+        if: ${{ env.CHANGES == 'pushed' || env.BRANCH == 'exists' }}
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+            git fetch --all
             gh repo set-default cerrussell/atom-samples
             if gh pr list -l "slice update" | grep -vq "no pull requests"; then
               echo "Pull request already exists.";
