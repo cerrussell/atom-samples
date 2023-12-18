@@ -17,10 +17,14 @@ on:
         description: Generate only this slice type (either usages or reachables)
         required: false
         type: string
-      filter:
+      filter-lang:
         description: Generate only for these languages (separated by spaces)
-        required: true
+        required: false
         default: 'java javascript python'
+        type: string
+      filter-projects:
+        description: Generate only for these projects (separated by spaces, change language filter values as needed)
+        required: false
         type: string
       debug-cmds:
         description: Don't execute commands, just print and upload shell files
@@ -37,7 +41,7 @@ on:
         type: string
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}-${{ inputs.filter }}-${{ inputs.filter-slice-type }}
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}-${{ inputs.projects || inputs.filter-lang }}-${{ inputs.filter-slice-type }}
   cancel-in-progress: true
 
 jobs:
@@ -45,16 +49,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Handle projects input
+        run: |
+          if [ -n "${{ inputs.filter-projects }}" ]; then
+              echo 'FILTER="-p ${{ inputs.filter-projects }}"' >> "$GITHUB_ENV"
+            else
+              echo 'FILTER="-i ${{ inputs.filter-lang }}"' >> "$GITHUB_ENV"
+          fi
+          echo 'LANGS="${{ inputs.filter-lang }}"' >> "$GITHUB_ENV"
+
       - name: Echo inputs
         run: |
           echo "commit-updates: ${{ inputs.commit-updates }}"
           echo "commit-msg: ${{ inputs.commit-msg }}"
           echo "filter-slice-type: ${{ inputs.filter-slice-type }}"
-          echo "filter: ${{ inputs.filter }}"
+          echo "filter-lang: ${{ inputs.filter-lang }}"
           echo "debug-cmds: ${{ inputs.debug-cmds }}"
           echo "custom-csv: ${{ inputs.custom-csv }}"
           echo "run-twice: ${{ inputs.run-twice }}"
           echo "github.actor: ${{ github.actor }}"
+          echo "FILTER: ${{ env.FILTER }}"
+          echo "LANGS: ${{ env.LANGS }}"
 
       - uses: actions/checkout@v4
 
@@ -78,7 +93,6 @@ jobs:
            npm install -g @appthreat/atom
            curl -s "https://get.sdkman.io" | bash
            source "/home/runner/.sdkman/bin/sdkman-init.sh"
-           echo sdkman_auto_answer=true > ~/.sdkman/etc/config
 
       - name: Allow a custom csv
         if: inputs.custom-csv && contains(fromJSON('["cerrussell", "prabhu"]'), github.actor)
@@ -115,19 +129,10 @@ jobs:
         env:
           SDKMAN_DIR: /home/runner/.sdkman
         run: |
-           python generate.py -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
-           bash /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
-           echo sdkman_auto_env=true > ~/.sdkman/etc/config
-           bash /home/runner/work/atom-samples/atom-samples/atom_commands.sh
-           python generate.py --cleanup
-
-      - name: Run atom commands
-        if: ${{ ! inputs.debug-cmds }}
-        env:
-          SDKMAN_DIR: /home/runner/.sdkman
-        run: |
-           bash /home/runner/work/atom-samples/atom-samples/atom_commands.sh
-           python generate.py --cleanup
+          python generate.py -s ${{ inputs.filter-slice-type }} $FILTER
+          bash /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
+          bash /home/runner/work/atom-samples/atom-samples/atom_commands.sh
+          python generate.py --cleanup
 
       - name: Optional second run
         if: ${{ ! inputs.debug-cmds && inputs.run-twice }}
@@ -138,7 +143,6 @@ jobs:
           mv /home/runner/work/atom-samples/atom-samples/atom_commands.sh /home/runner/work/atom-samples/atom-samples/atom_commands-run1.sh
           python generate.py ${{ inputs.run-twice }}
           bash /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
-          echo sdkman_auto_env=true > ~/.sdkman/etc/config
           bash /home/runner/work/atom-samples/atom-samples/atom_commands.sh
           python generate.py --cleanup
           mv /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh /home/runner/work/atom-samples/atom-samples/sdkman_installs-run2.sh
@@ -147,7 +151,7 @@ jobs:
       - name: Generate shell scripts only
         if: inputs.debug-cmds
         run: |
-          python generate.py --debug-cmds -s ${{ inputs.filter-slice-type }} -i ${{ inputs.filter }}
+          python generate.py --debug-cmds -s ${{ inputs.filter-slice-type }} $FILTER
 
       - name: Generate shell scripts only - second run
         if: inputs.debug-cmds && inputs.run-twice
@@ -171,24 +175,34 @@ jobs:
           name: scripts
           path: /home/runner/work/atom-samples/atom-samples/*.sh
 
+      - name: Upload cdxgen boms
+        if: ${{ contains(inputs.filter-lang, 'java') || contains(inputs.filter-lang, 'javascript') }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: cdxgen_boms
+          path: |
+            /home/runner/work/src_repos/java/**/bom.json
+            /home/runner/work/src_repos/javascript/**/bom.json
+
       - name: Commit and push
         if: ${{ inputs.commit-updates && ! inputs.debug-cmds && contains(fromJSON('["cerrussell", "prabhu"]'), github.actor) }}
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          rm -rf /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
+          rm -rf /home/runner/work/atom-samples/atom-samples/atom_commands.sh
           git config user.name "Caroline Russell"
           git config user.email "caroline@appthreat.dev"
           git_cmd='git add --dry-run java javascript python'
           sp=$(eval $git_cmd)
           if [ -n "$sp" ]; then
-            echo "Nothing to commit."
-            exit 0
-          else
             git add java javascript python
             git commit -m "${{ inputs.commit-msg }}"
             git push --set-upstream origin update/slice-update
             echo "CHANGES=pushed" >> "$GITHUB_ENV"
+          else
+            echo "CHANGES=none" >> "$GITHUB_ENV"
           fi
           
       - name: Create PR

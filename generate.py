@@ -36,9 +36,9 @@ def build_args():
         help='Path to output',
         dest='output_dir',
     )
-    lang_parser_group = parser.add_mutually_exclusive_group()
-    lang_parser_group.set_defaults(langs=['java', 'python', 'javascript'])
-    lang_parser_group.add_argument(
+    filter_parser_group = parser.add_mutually_exclusive_group()
+    filter_parser_group.set_defaults(langs=['java', 'python', 'javascript'])
+    filter_parser_group.add_argument(
         '-i',
         '--include-langs',
         choices=['java', 'python', 'javascript'],
@@ -47,11 +47,19 @@ def build_args():
         dest='langs',
         nargs='*',
     )
-    lang_parser_group.add_argument(
+    filter_parser_group.add_argument(
         '-e',
         '--exclude-langs',
         choices=['java', 'python', 'javascript'],
+        help='Languages to exclude from samples',
         dest='elangs',
+        nargs='*'
+    )
+    filter_parser_group.add_argument(
+        '-p',
+        '--projects',
+        help='Filter to these sample projects',
+        dest='projects',
         nargs='*'
     )
     parser.add_argument(
@@ -106,6 +114,8 @@ def generate(args):
     Returns:
         None
     """
+    if args.projects:
+        args.langs = ['java', 'python', 'javascript']
     langs = set(args.langs)
     if args.output_dir == '.':
         args.output_dir = pathlib.Path.cwd()
@@ -114,13 +124,13 @@ def generate(args):
     if not args.debug_cmds:
         check_dirs(args.skip_clone, args.clone_dir, args.output_dir)
 
-    repo_data = read_csv(args.repo_csv, langs, args.clone_dir)
+    repo_data = read_csv(args.repo_csv, langs, args.projects, args.clone_dir)
     processed_repos = process_repo_data(repo_data, args.clone_dir, langs)
 
     if not args.skip_build:
         run_pre_builds(repo_data, args.output_dir, args.debug_cmds)
 
-    commands = '\nsdk env install' + ''.join(
+    commands = ''.join(
         exec_on_repo(
             args.skip_clone,
             args.output_dir,
@@ -198,8 +208,8 @@ def exec_on_repo(
             commands += f"\n{subprocess.list2cmdline(new_cmd)}"
     if repo.get('cdxgen_cmd'):
         commands += f"\n{repo['cdxgen_cmd']}"
-
     commands += f'\n{subprocess.list2cmdline(["cd", loc])}'
+    commands += f'\n{subprocess.list2cmdline(["sdk", "use", "java", "21.0.1-tem"])}'
     for stype in slice_types:
         slice_file = Path.joinpath(output_dir, lang, f'{project}-{stype}.json')
         atom_file = Path.joinpath(repo_dir, f'{project}.atom')
@@ -210,13 +220,14 @@ def exec_on_repo(
     return commands
 
 
-def read_csv(csv_file, langs, clone_dir):
+def read_csv(csv_file, langs, projects, clone_dir):
     """
     Reads a CSV file and filters the data based on a list of languages.
 
     Parameters:
         csv_file (pathlib.Path): The path to the CSV file.
         langs (set): A set of programming languages.
+        projects (list): A list of projects names to filter on.
         clone_dir (pathlib.Path): The directory storing the cloned repositories.
 
     Returns:
@@ -225,7 +236,9 @@ def read_csv(csv_file, langs, clone_dir):
     with open(csv_file, 'r', encoding='utf-8') as f:
         reader = csv.DictReader(f)
         repo_data = list(reader)
-    if len(langs) != 3:
+    if projects:
+        repo_data = [repo for repo in repo_data if repo['project'] in projects]
+    elif 'java' not in langs or 'javascript' not in langs or 'python' not in langs:
         repo_data = [repo for repo in repo_data if repo['language'] in langs]
     return add_repo_dirs(clone_dir, repo_data)
 
