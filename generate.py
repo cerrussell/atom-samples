@@ -181,8 +181,8 @@ def exec_on_repo(
     commands = ''
 
     if clone:
-        commands += f'\n{clone_repo(repo['link'], repo_dir)}'
-    commands += f"\n{subprocess.list2cmdline(['cd', repo_dir])}"
+        commands += f'\n{clone_repo(repo["link"], repo_dir)}'
+    commands += f'\n{subprocess.list2cmdline(["cd", repo_dir])}'
     if not skip_build and len(repo['pre_build_cmd']) > 0:
         cmds = repo['pre_build_cmd'].split(';')
         cmds = [cmd.lstrip().rstrip() for cmd in cmds]
@@ -198,13 +198,13 @@ def exec_on_repo(
     if repo.get('cdxgen_cmd'):
         commands += f"\n{repo['cdxgen_cmd']}"
 
-    commands += f"\n{subprocess.list2cmdline(['cd', loc])}"
+    commands += f'\n{subprocess.list2cmdline(["cd", loc])}'
     for stype in slice_types:
-        slice_file = Path.joinpath(output_dir, lang, f"{project}-{stype}.json")
-        atom_file = Path.joinpath(repo_dir, f"{project}.atom")
+        slice_file = Path.joinpath(output_dir, lang, f'{project}-{stype}.json')
+        atom_file = Path.joinpath(repo_dir, f'{project}.atom')
         cmd = ['atom', stype, '-l', lang, '-o', atom_file, '-s', slice_file,
                repo_dir]
-        commands += f"\n{subprocess.list2cmdline(cmd)}"
+        commands += f'\n{subprocess.list2cmdline(cmd)}'
     commands += '\n\n'
     return commands
 
