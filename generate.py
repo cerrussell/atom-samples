@@ -120,13 +120,14 @@ def generate(args):
     if not args.skip_build:
         run_pre_builds(repo_data, args.output_dir, args.debug_cmds)
 
-    commands = ''.join(
+    commands = '\nsdk env install' + ''.join(
         exec_on_repo(
             args.skip_clone,
             args.output_dir,
             args.skip_build,
             args.slice_types
-            if isinstance(args.slice_types, list) else [args.slice_types],
+            if isinstance(args.slice_types, list)
+            else [args.slice_types],
             repo,
         )
         for repo in processed_repos
