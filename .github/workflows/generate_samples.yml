@@ -67,10 +67,10 @@ jobs:
           git_cmd='git branch --list -r "origin/update/slice-update"'
           pr=$(eval $git_cmd)
           if [ "$pr" != "  origin/update/slice-update" ]; then
-            git checkout -B update/slice-update fix/reachables^0 --
+            git checkout --force -B update/slice-update refs/remotes/origin/main --
             echo "CREATED=new" >> "$GITHUB_ENV"
           else
-            git checkout origin/update/slice-update --
+            git checkout --force -B update/slice-update refs/remotes/origin/update/slice-update --
             echo "CREATED=exists" >> "$GITHUB_ENV"
           fi
 
