@@ -32,6 +32,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Run generate workflow
-        uses: cerrussell/atom-samples/.github/workflows/generate_samples.yml
+        uses: cerrussell/atom-samples/.github/workflows/generate_samples.yml@main
         with:
           commit-msg: "autoupdate"
