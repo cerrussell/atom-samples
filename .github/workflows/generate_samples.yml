@@ -210,8 +210,8 @@ jobs:
             rm -rf /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
             rm -rf /home/runner/work/atom-samples/atom-samples/atom_commands.sh
           fi
-          git config user.name "Caroline Russell"
-          git config user.email "caroline@appthreat.dev"
+          git config user.name ${{ github.actor }}
+          git config user.email "cloud@appthreat.com"
           git_cmd='git add --dry-run java javascript python'
           sp=$(eval $git_cmd)
           if [ -n "$sp" ]; then
