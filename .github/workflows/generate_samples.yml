@@ -109,7 +109,7 @@ jobs:
           curl -o sources.csv ${{ inputs.custom-csv }}
 
       - name: Sample repo cache (python and javascript)
-        if: contains(inputs.filter, 'python') || contains(inputs.filter, 'javascript') || contains(inputs.run-twice, 'python') || contains(inputs.run-twice, 'javascript')
+#        if: contains(inputs.filter, 'python') || contains(inputs.filter, 'javascript') || contains(inputs.run-twice, 'python') || contains(inputs.run-twice, 'javascript')
         uses: actions/cache@v3
         id: cache
         with:
@@ -119,7 +119,7 @@ jobs:
           key: ${{ runner.os }}-python-js-sample-repos-${{ hashFiles('sources.csv') }}
 
       - name: Sample repo cache (java)
-        if: startsWith(inputs.filter,'java') || contains(inputs.run-twice, 'java') || endsWith(inputs.filter,'java') || contains(fromJSON('["python java javascript", "javascript java python"]'), inputs.filter)
+#        if: startsWith(inputs.filter,'java') || contains(inputs.run-twice, 'java') || endsWith(inputs.filter,'java') || contains(fromJSON('["python java javascript", "javascript java python"]'), inputs.filter)
         uses: actions/cache@v3
         id: jcache
         with:
