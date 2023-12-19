@@ -201,11 +201,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ -n "${{ inputs.run-twice }}"]; then
-            rm -rf /home/runner/work/atom-samples/atom-samples/sdkman_installs-run1.sh
-            rm -rf /home/runner/work/atom-samples/atom-samples/atom_commands-run1.sh
-            rm -rf /home/runner/work/atom-samples/atom-samples/sdkman_installs-run2.sh
-            rm -rf /home/runner/work/atom-samples/atom-samples/atom_commands-run2.sh
+          if [ -n "${{ inputs.run-twice }}" ]; then
+            rm -rf /home/runner/work/atom-samples/atom-samples/sdkman_installs-run{1,2}.sh
+            rm -rf /home/runner/work/atom-samples/atom-samples/atom_commands-run{1,2}.sh
           else
             rm -rf /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
             rm -rf /home/runner/work/atom-samples/atom-samples/atom_commands.sh
