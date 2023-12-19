@@ -22,11 +22,11 @@ Data-flow and usage commands for sample projects below.
 
 | Project                                                       | Type       |
 |---------------------------------------------------------------|------------|
-| [aklivity/zilla](https://github.com/aklivity/zilla)           | java       |
 | [apolloconfig/apollo](https://github.com/apolloconfig/apollo) | java       |
 | [avajs/ava](https://github.com/avajs/ava)                     | javascript |
 | [axios/axios](https://github.com/axios/axios)                 | javascript |
 | [explosion/spaCy](https://github.com/explosion/spaCy)         | python     |
+| [harawata/appdirs](https://github.com/harawata/appdirs) | java |
 | [karatelabs/karate](https://github.com/karatelabs/karate)     | java       |
 | [msiemens/tinydb](https://github.com/msiemens/tinydb)         | python     |
 | [scrapy/scrapy](https://github.com/scrapy/scrapy)             | python     |
