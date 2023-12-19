@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       commit-updates:
-        description: Push updated slices (will only run if initiated by Caroline or Prabhu)
+        description: Open a pull request with the updated/new slices
         required: false
         default: true
         type: boolean
@@ -23,7 +23,7 @@ on:
         default: 'java javascript python'
         type: string
       filter-projects:
-        description: Generate only for these projects (separated by spaces, change language filter values for correct caching)
+        description: Generate only for these projects (separated by spaces)
         required: false
         type: string
         default: ''
@@ -33,7 +33,7 @@ on:
         type: boolean
         default: false
       custom-csv:
-        description: Link to custom sources.csv (Input accepted from Caroline or Prabhu only, shorten url first)
+        description: Link to custom sources.csv (Input accepted from Caroline or Prabhu only, shorten url first, cannot be committed)
         required: false
         type: string
       run-twice:
@@ -41,14 +41,18 @@ on:
         required: false
         type: string
 
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}-${{ inputs.projects || inputs.filter-lang }}-${{ inputs.filter-slice-type }}
   cancel-in-progress: true
 
+
 jobs:
   generate:
     runs-on: ubuntu-latest
-
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - name: Handle projects input
         shell: bash
@@ -81,7 +85,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up a branch if pushing
-        if: ${{ inputs.commit-updates && contains(fromJSON('["cerrussell", "prabhu"]'), github.actor) && ! inputs.debug-cmds }}
+        if: ${{ inputs.commit-updates && ! inputs.debug-cmds }}
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -104,7 +108,7 @@ jobs:
            source "/home/runner/.sdkman/bin/sdkman-init.sh"
 
       - name: Allow a custom csv
-        if: inputs.custom-csv && contains(fromJSON('["cerrussell", "prabhu"]'), github.actor)
+        if: inputs.custom-csv && ! inputs.commit-updates && contains(fromJSON('["cerrussell", "prabhu"]'), github.actor)
         run: |
           curl -o sources.csv ${{ inputs.custom-csv }}
 
@@ -196,7 +200,7 @@ jobs:
             /home/runner/work/src_repos/javascript/**/bom.json
 
       - name: Commit and push
-        if: ${{ inputs.commit-updates && ! inputs.debug-cmds && contains(fromJSON('["cerrussell", "prabhu"]'), github.actor) }}
+        if: ${{ inputs.commit-updates && ! inputs.debug-cmds && ! inputs.custom-csv }}
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -208,15 +212,24 @@ jobs:
             rm -rf /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
             rm -rf /home/runner/work/atom-samples/atom-samples/atom_commands.sh
           fi
-          git config user.name ${{ github.actor }}
+          cmd='npm view @appthreat/atom dist-tags.latest'
+          ver=$(eval echo "$cmd")
+          git config user.name "Team AppThreat"
           git config user.email "cloud@appthreat.com"
           git_cmd='git add --dry-run java javascript python'
-          sp=$(eval $git_cmd)
+          sp=$(eval "$git_cmd")
           if [ -n "$sp" ]; then
             git add java javascript python
-            git commit -m "${{ inputs.commit-msg }}"
+            if [ "${{ inputs.commit-msg }}" == "Slice update" ]; then
+              echo "MSG=Slice update for atom v"$ver"" >> "$GITHUB_ENV"
+              git commit -m "Slice update for atom v"$ver""
+            else
+              echo "MSG=${{ inputs.commit-msg }}" >> "$GITHUB_ENV"
+              git commit -m "${{ inputs.commit-msg }}"
+            fi
             git push --set-upstream origin update/slice-update
             echo "CHANGES=pushed" >> "$GITHUB_ENV"
+            echo "FILES="$sp"" >> "$GITHUB_ENV"
           else
             echo "CHANGES=none" >> "$GITHUB_ENV"
           fi
@@ -227,10 +240,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-            git fetch --all
             gh repo set-default cerrussell/atom-samples
             if gh pr list -l "slice update" | grep -vq "no pull requests"; then
               echo "Pull request already exists.";
             else
-              gh pr create --fill --reviewer cerrussell;
+              gh pr create -l "slice update" --title "Slice update for atom v${{ env.MSG }}" --body ${{ env.FILES }} --reviewer cerrussell
             fi
