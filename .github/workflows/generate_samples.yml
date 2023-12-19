@@ -61,24 +61,6 @@ on:
         required: false
         default: 'java javascript python'
         type: string
-      filter-projects:
-        description: Generate only for these projects (separated by spaces)
-        required: false
-        type: string
-        default: ''
-      debug-cmds:
-        description: Don't execute commands, just print and upload shell files
-        required: false
-        type: boolean
-        default: false
-      custom-csv:
-        description: Link to custom sources.csv (Input accepted from Caroline or Prabhu only, shorten url first, cannot be committed)
-        required: false
-        type: string
-      run-twice:
-        description: Run generate.py a second time with custom args
-        required: false
-        type: string
 
 
 concurrency:
