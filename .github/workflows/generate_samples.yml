@@ -48,6 +48,7 @@ concurrency:
 
 
 jobs:
+
   generate:
     runs-on: ubuntu-latest
     permissions:
@@ -79,6 +80,7 @@ jobs:
           echo "custom-csv: ${{ inputs.custom-csv }}"
           echo "run-twice: ${{ inputs.run-twice }}"
           echo "github.actor: ${{ github.actor }}"
+          echo "atom-version: ${{ inputs.atom-version }}"
           echo "FILTER: ${{ env.FILTER }}"
           echo "LANGS: ${{ env.LANGS }}"
 
@@ -206,36 +208,56 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ -n "${{ inputs.run-twice }}" ]; then
-            rm -rf /home/runner/work/atom-samples/atom-samples/sdkman_installs-run{1,2}.sh
-            rm -rf /home/runner/work/atom-samples/atom-samples/atom_commands-run{1,2}.sh
+            rm -rf /home/runner/work/atom-samples/atom-samples/sdkman_installs-run{1,2}.sh \
+                   /home/runner/work/atom-samples/atom-samples/atom_commands-run{1,2}.sh
           else
-            rm -rf /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh
-            rm -rf /home/runner/work/atom-samples/atom-samples/atom_commands.sh
+            rm -rf /home/runner/work/atom-samples/atom-samples/sdkman_installs.sh \
+                   /home/runner/work/atom-samples/atom-samples/atom_commands.sh
           fi
-          cmd='npm view @appthreat/atom dist-tags.latest'
-          ver=$(eval echo "$cmd")
+
           git config user.name "Team AppThreat"
           git config user.email "cloud@appthreat.com"
-          git_cmd='git add --dry-run java javascript python'
-          sp=$(eval "$git_cmd")
+
+          sp=$(git add --dry-run java javascript python)
           if [ -n "$sp" ]; then
-            git add java javascript python
-            if [ "${{ inputs.commit-msg }}" == "Slice update" ]; then
-              echo "MSG=Slice update for atom v"$ver"" >> "$GITHUB_ENV"
-              git commit -m "Slice update for atom v"$ver""
-            else
-              echo "MSG=${{ inputs.commit-msg }}" >> "$GITHUB_ENV"
-              git commit -m "${{ inputs.commit-msg }}"
-            fi
-            git push --set-upstream origin update/slice-update
-            echo "CHANGES=pushed" >> "$GITHUB_ENV"
-            echo "FILES="$sp"" >> "$GITHUB_ENV"
+            echo "CHANGES=ready" >> "$GITHUB_ENV"
+            echo "$sp" > /home/runner/work/files.txt
           else
             echo "CHANGES=none" >> "$GITHUB_ENV"
           fi
-          
+
+      - name: Update atom_version.txt
+        if: ${{ env.CHANGES == 'ready' }}
+        shell: bash
+        run: |
+          current=$(cat atom_version.txt)
+          ver=$(npm view @appthreat/atom dist-tags.latest)
+          if [ "$current" != "$ver" ]; then
+            echo "$ver" > atom_version.txt
+            sp=$(git add java javascript python atom_version.txt)
+          else
+            sp=$(git add java javascript python)
+          fi
+          echo "$sp" > /home/runner/work/files.txt
+          if [ ${{ inputs.commit-msg }} == "autoupdate" ]; then
+            echo "COMMIT_MSG=Slice update for atom $ver" >> "$GITHUB_ENV"
+          else
+            echo "COMMIT_MSG=${{ inputs.commit-msg }}" >> "$GITHUB_ENV"
+          fi
+
+      - name: Commit and push
+        if: ${{ env.CHANGES == 'ready' }}
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git commit -m "${{ env.COMMIT_MSG }}"
+          git push --set-upstream origin update/slice-update
+          echo "CHANGES=pushed" >> "$GITHUB_ENV"
+
+
       - name: Create PR
-        if: ${{ env.CHANGES == 'pushed' || env.BRANCH == 'exists' }}
+        if: ${{ env.CHANGES == 'pushed' }}
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -244,5 +266,5 @@ jobs:
             if gh pr list -l "slice update" | grep -vq "no pull requests"; then
               echo "Pull request already exists.";
             else
-              gh pr create -l "slice update" --title "Slice update for atom v${{ env.MSG }}" --body ${{ env.FILES }} --reviewer cerrussell
+              gh pr create -l "slice update" --title ${{ inputs.commit_msg }} --body-file /home/runner/work/files.txt --reviewer cerrussell
             fi

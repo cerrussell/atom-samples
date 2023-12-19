@@ -1,0 +1,34 @@
+name: Check for new atom release
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  check_release:
+    runs-on: ubuntu-latest
+    outputs:
+      release: ${{ steps.check.outputs.release }}
+    steps:
+      - uses: actions/checkout@v3
+      - id: check
+        shell: bash
+        run: |
+          ver=$(npm view @appthreat/atom dist-tags.latest)
+          current=$(cat atom_version.txt)
+          if [ "$current" != "$ver" ]; then
+              echo "release=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  run_generate:
+    runs-on: ubuntu-latest
+    needs: check_release
+    if: ${{ needs.check_release.outputs.release == 'true' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run generate workflow
+        uses: ./.github/workflows/generate_samples.yml
+        with:
+          commit-msg: "autoupdate"
