@@ -47006,6 +47006,58 @@
       "columnNumber" : 18
     },
     {
+      "name" : "bin/GithubAPI.js::program:GithubAPI:getIssues:{ state?: __ecma.String; labels: ANY; sort?: __ecma.String; desc?: __ecma.Boolean; per_page?: __ecma.Number; page?: __ecma.Number; }",
+      "fields" : [
+        {
+          "name" : "state",
+          "typeFullName" : "__ecma.String",
+          "lineNumber" : 70,
+          "columnNumber" : 19,
+          "label" : "LOCAL"
+        },
+        {
+          "name" : "labels",
+          "typeFullName" : "ANY",
+          "lineNumber" : 70,
+          "columnNumber" : 34,
+          "label" : "LOCAL"
+        },
+        {
+          "name" : "sort",
+          "typeFullName" : "__ecma.String",
+          "lineNumber" : 70,
+          "columnNumber" : 42,
+          "label" : "LOCAL"
+        },
+        {
+          "name" : "desc",
+          "typeFullName" : "__ecma.Boolean",
+          "lineNumber" : 70,
+          "columnNumber" : 60,
+          "label" : "LOCAL"
+        },
+        {
+          "name" : "per_page",
+          "typeFullName" : "__ecma.Number",
+          "lineNumber" : 70,
+          "columnNumber" : 74,
+          "label" : "LOCAL"
+        },
+        {
+          "name" : "page",
+          "typeFullName" : "__ecma.Number",
+          "lineNumber" : 70,
+          "columnNumber" : 90,
+          "label" : "LOCAL"
+        }
+      ],
+      "procedures" : [
+      ],
+      "fileName" : "bin/GithubAPI.js",
+      "lineNumber" : 70,
+      "columnNumber" : 18
+    },
+    {
       "name" : "bin/RepoBot.js::program:RepoBot",
       "fields" : [
         {
@@ -47136,23 +47188,6 @@
     },
     {
       "name" : "bin/RepoBot.js::program:RepoBot:notifyPRPublished:anonymous:_anon_cdecl",
-      "fields" : [
-        {
-          "name" : "name",
-          "typeFullName" : "__ecma.String",
-          "lineNumber" : 66,
-          "columnNumber" : 31,
-          "label" : "LOCAL"
-        }
-      ],
-      "procedures" : [
-      ],
-      "fileName" : "bin/RepoBot.js",
-      "lineNumber" : 66,
-      "columnNumber" : 30
-    },
-    {
-      "name" : "bin/RepoBot.js::program:RepoBot:notifyPRPublished:anonymous:{ name: ANY; }",
       "fields" : [
         {
           "name" : "name",
